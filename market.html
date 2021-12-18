@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Market</title>
+    <script src="ethers-5.4.umd.min.js" type="application/javascript" crossorigin="anonymous"></script>
+<STYLE>
+    body {
+        font-family: 'Arial',serif;
+        padding: 0;
+        margin: 0;
+    }
+    body > div {
+        padding: 3px 10px;
+    }
+    .heroes {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #myWBNB, #HeroesNum {
+        font-weight: bold;
+    }
+    .heroDiv {
+        cursor: pointer;
+        width: 50px;
+        height: 50px;
+        border: solid 1px black;
+        margin: 5px;
+        padding: 0;
+        background-size: contain;
+        line-height: 25px;
+        text-align: center;
+    }
+    #LoadLatest {
+        margin-left: 13px;
+    }
+    #divConnect {
+        padding: 30px;
+        text-align: center;
+    }
+    .marketTable {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .marketTable thead tr {
+        background-color: #4c4c4c;
+        color: #ffffff;
+        text-align: left;
+    }
+    .marketTable th,
+    .marketTable td {
+        padding: 12px 15px;
+    }
+    .marketTable tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .marketTable tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    .marketTable tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+    .marketTable span.Common {
+        color: #466BF7;
+    }
+    .marketTable span.Epic {
+        color: #9954DC;
+    }
+    .marketTable span.Legendary {
+        color: #FF8700;
+    }
+    .marketTable span.Normal {
+        color: #00C5E2;
+    }
+    .marketTable span.Rare {
+        color: #0CBF6B;
+    }
+    .marketTable span.Mythical {
+        color: #F54AB0;
+    }
+</STYLE>
+</head>
+<body>
+<DIV style="text-align: center;background-color: #0cb00f; color: white;">Donate: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
+<BR><DIV id="divConnect">
+    <button id="webConnect"> Connect to Web3 wallet (MetaMask) </button>
+</DIV>
+<DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
+<DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
+<DIV>BNB price: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
+<DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
+<DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
+<DIV id="accStats" style="display: none;">
+Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>%
+</DIV>
+<BR>
+<DIV>Win rate: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<DIV>Min game left count: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV id="heroes" class="heroes"></DIV>
+<DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
+<DIV id="MintStatus"></DIV>
+<DIV id="marketData"></DIV>
+<DIV><B>How to use?</B><BR>
+    * <B>Click on the hero</B> to load or update items from the official market, sorted by the profitability.<BR>
+    * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet for <B>advanced</B> features.<BR>
+    * Click the "<B>Check</B>" button to check if a lot is purchasable (if not, you can click the "Ignore" button to ignore that lot in future searches).<BR>
+    * Click on the <B>"BUY"</B> button and confirm the transaction in the Metamask to buy a hero (it will appear in your market inventory in a few minutes).<BR>
+    * You can use the tool without an Auth Token or Wallet connection.<BR>
+</DIV><BR>
+<DIV><B>How to get the Auth token to check lots?</B><BR>
+    * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
+    * Go to your "inventory", click F12, in the "Console" paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
+    * Copy the long code (without quotes) and paste it into the "Market Auth token" field above.<BR>
+</DIV><BR>
+<DIV><B>Website Features</B><BR>
+    * Easily check your WBNB balance, exchange rates and win rate.<BR>
+    * Easily convert from BNB to WBNB and back again.<BR>
+    * Load items from the official market and sort by profitability.<BR>
+    * It is possible to check if an item can be bought and ignore faulty items.<BR>
+    * It is possible to buy heroes directly from this page.<BR>
+    * Profitability is calculated based on remaining fights, hero rarity, hero level and set WinRate.<BR>
+    * You can load lots by hero or most recently added lots.<BR>
+    * Set the minimum number of games remaining and pages to load to optimize loading speed.<BR>
+    * Automatic refresh function with new items highlight.<BR>
+</DIV>
+<DIV>Hosted on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>.  </DIV>
+<SCRIPT src="main.js" type="application/javascript"></SCRIPT>
+</body>
+</html>
