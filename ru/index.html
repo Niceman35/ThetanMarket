@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <TITLE>ThetanMarket.LIVE - легкий способ покупки героя на ThetanArena Marketplace</TITLE>
+    <script src="../ethers-5.4.umd.min.js" type="application/javascript" crossorigin="anonymous"></script>
+<STYLE>
+    body {
+        font-family: 'Arial',serif;
+        padding: 0;
+        margin: 0;
+    }
+    body > div {
+        padding: 3px 10px;
+    }
+    .heroes {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    #myWBNB, #HeroesNum {
+        font-weight: bold;
+    }
+    .heroDiv {
+        cursor: pointer;
+        width: 50px;
+        height: 50px;
+        border: solid 1px black;
+        margin: 5px;
+        padding: 0;
+        background-size: contain;
+        line-height: 25px;
+        text-align: center;
+    }
+    #LoadLatest {
+        margin-left: 13px;
+    }
+    #divConnect {
+        padding: 30px;
+        text-align: center;
+    }
+    .marketTable {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .marketTable thead tr {
+        background-color: #4c4c4c;
+        color: #ffffff;
+        text-align: left;
+    }
+    .marketTable th,
+    .marketTable td {
+        padding: 12px 15px;
+    }
+    .marketTable tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .marketTable tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+
+    .marketTable tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+    .marketTable span.Common {
+        color: #466BF7;
+    }
+    .marketTable span.Epic {
+        color: #9954DC;
+    }
+    .marketTable span.Legendary {
+        color: #FF8700;
+    }
+    .marketTable span.Normal {
+        color: #00C5E2;
+    }
+    .marketTable span.Rare {
+        color: #0CBF6B;
+    }
+    .marketTable span.Mythical {
+        color: #F54AB0;
+    }
+</STYLE>
+</head>
+<body>
+<DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
+<BR><DIV id="divConnect">
+    <button id="webConnect"> Присоединиться к Web3 кошельку (MetaMask) </button>
+</DIV>
+<DIV>Адрес: <SPAN id="myAddress"></SPAN></DIV>
+<DIV>Цена THC: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ График ]</A> </DIV>
+<DIV>Цена WBNB: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>Балансы: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; Равернуть</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Обернуть &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
+<DIV>У вас есть: <SPAN id="HeroesNum"></SPAN> героев</DIV>
+<DIV>Auth token с маркета: <input type="text" id="Barrier" size="80"></DIV>
+<DIV id="accStats" style="display: none;">
+Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles"></span> | Побед: <span id="accWins"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRate"></span>%
+</DIV>
+<BR>
+<DIV>Процент побед для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<DIV>Минимум остаток игр: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Сколько загружать с рынка (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV id="heroes" class="heroes"></DIV>
+<DIV id="autoUpdate">Авто-обновление (не ставьте ниже 10 секунд): <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
+<DIV id="MintStatus"></DIV>
+<DIV id="marketData"></DIV>
+<DIV><B>Как использовать?</B><BR>
+    * <B>Нажать на героя</B>, чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности.<BR>
+    * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
+    * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли лот купить (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
+    * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
+    * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
+</DIV><BR>
+<DIV><B>Как получить токен авторизации на маркете?</B><BR>
+    * Перейдите на <A target="_blank" href="https://marketplace.thetanarena.com/">официальный маркет</A>.<BR>
+    * Перейдите в инвентарь, нажмите F12, в разделе "Console" вставьте <B>localStorage['theta/accessToken']</B> и нажмите [Enter].<BR>
+    * Скопируйте длинный код и вставьте в поле "Auth token с маркета" выше.<BR>
+    * После этого Вы сможете проверить и купить героя прямо на сайте (без авторизации маркет не отдает нужные данные).<BR>
+</DIV><BR>
+<DIV><B>Возможности сервиса</B><BR>
+    * Легко проверить баланс WBNB, курсы обмена, а так же ваш WinRate.<BR>
+    * Легкая конвертация BNB в WBNB и обратно.<BR>
+    * Загрузка героев с официального маркета с автоматической сортировкой по прибыльности.<BR>
+    * Возможность быстро проверить лоты на возможность их купить (фильтровать лоты с ошибками).<BR>
+    * Возможность быстро купить героя прямо на странице.<BR>
+    * Расчет прибыльности каждого героя. Учитывается количество оставшихся боев, редкость героя, уровень прокачки и установленный Вами процент побед.<BR>
+    * Возможность загрузить последние выставленные лоты по всем героям.<BR>
+    * Настроить минимум оставшихся игр и количество лотов, чтобы уменьшить время загрузки с Маркета.<BR>
+    * Функция автоматического обновления списка с подсвечиванием новых предложений.<BR>
+</DIV>
+<HR>
+<DIV>Сайт выложен на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHub</A>.</DIV>
+<SCRIPT src="../main.js?v=3" type="application/javascript"></SCRIPT>
+</body>
+</html>
