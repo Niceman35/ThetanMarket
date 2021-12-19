@@ -22,7 +22,6 @@ const NFTAbi = [
     "function balanceOf(address) public view returns (uint256)",
     "function ownerOf(uint256) public view returns (address)",
     "function isLocked(uint256) public view returns (bool)",
-
     // An event triggered whenever anyone transfers to someone else
     "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
@@ -81,10 +80,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
     document.getElementById('Barrier').value = localStorage['barrier'];
 
-    document.getElementById('Barrier').addEventListener('change', function () {
+    document.getElementById('Barrier').addEventListener('change', async function () {
         console.log('Barrier changed');
-        localStorage.setItem('barrier',document.getElementById('Barrier').value);
-        document.getElementById('Barrier').style.backgroundColor = 'lightgreen';
+        let barrier = (document.getElementById('Barrier').value).replace(/'/g,"");
+        let status = await loadAccStats(barrier);
+        if(status) {
+            alert('Token saved sucessfully');
+            localStorage.setItem('barrier', barrier);
+            document.getElementById('Barrier').style.backgroundColor = 'lightgreen';
+        }
     });
     document.getElementById('webConnect').addEventListener('click', ConnectBinance);
     document.getElementById('heroes').addEventListener('click', loadHeroMarket);
@@ -120,28 +124,37 @@ document.addEventListener("DOMContentLoaded", function(event) {
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/32')
         .then(response => response.json())
         .then(data => {bnbPrice = data['data'];document.getElementById('WBNB').innerHTML = bnbPrice;});
-    if(localStorage['barrier']) {
-        fetch("https://data.thetanarena.com/thetan/v1/profile",
-            {
-                method: 'GET',
-                withCredentials: true,
-                headers: new Headers({
-                    'Authorization': 'Bearer '+localStorage['barrier'],
-                    'Content-Type': 'application/json'
-                })})
-            .then(response => response.json())
-            .then(data => {
-                if(data['success']) {
-                    document.getElementById('accStats').style.display = 'block';
-                    document.getElementById('accUsername').innerHTML = data['data']['username'];
-                    document.getElementById('accBattles').innerHTML = data['data']['playerStatistic']['battle'];
-                    document.getElementById('accWins').innerHTML = data['data']['playerStatistic']['victory'];
-                    document.getElementById('accWinRate').innerHTML = (data['data']['playerStatistic']['victory'] / data['data']['playerStatistic']['battle'] * 100).toFixed(0);
-                }
-            });
+    if(localStorage['barrier'] > '') {
+        loadAccStats(localStorage['barrier']);
     }
 
 });
+
+async function loadAccStats(barrier) {
+    let responce = await fetch("https://data.thetanarena.com/thetan/v1/profile",
+        {
+            method: 'GET',
+            withCredentials: true,
+            headers: new Headers({
+                'Authorization': 'Bearer ' + barrier,
+                'Content-Type': 'application/json'
+            })
+        });
+    let data = await responce.json();
+    if(data['success']) {
+        document.getElementById('accStats').style.display = 'block';
+        document.getElementById('accUsername').innerHTML = data['data']['username'];
+        document.getElementById('accBattles').innerHTML = data['data']['playerStatistic']['battle'];
+        document.getElementById('accWins').innerHTML = data['data']['playerStatistic']['victory'];
+        document.getElementById('accWinRate').innerHTML = (data['data']['playerStatistic']['victory'] / data['data']['playerStatistic']['battle'] * 100).toFixed(0);
+        return true;
+    } else {
+        alert('Wrong Auth Token provided');
+        localStorage.setItem('barrier','');
+        document.getElementById('Barrier').value = '';
+        return false;
+    }
+}
 
 async function ConnectBinance() {
     let chainsData = {
@@ -195,6 +208,7 @@ async function ConnectBinance() {
         alert('Not found Web3 compatible Ethereum wallet.');
     }
 }
+
 let lastFound = {};
 async function loadHeroMarket(event) {
     let heroID = '';
@@ -326,17 +340,13 @@ async function checkHero(event) {
     }
     if(event.target.dataset['status'] !== 'check')
         return;
-    let chainId = await provider.getNetwork();
-    if(chainId.chainId !== 56) {
-        alert("Connect wallet to the Binance Smart chain");
-        return;
-    }
     let responce = await fetch('https://data.thetanarena.com/thetan/v1/items/'+heroID+'?id='+heroID);
     let data = await responce.json();
 //        console.log(data);
     console.log('TokenID: ' + data['data'].tokenId);
     if(!localStorage['barrier']) {
-        alert('You need to add the AuthToken to check the hero');
+        alert('You need to add the Auth Token to check the hero automatically');
+        setIgnore(event.target);
         return;
     }
     if(data["data"]["sale"]) {
@@ -355,6 +365,7 @@ async function checkHero(event) {
         console.log('Sign: ' + signed['data']);
         if(!signed['data']) {
             alert('Wrong AuthToken or can not connect to the market');
+            setIgnore(event.target);
             return;
         }
         let criteriaMessageHash = getMessageHash(
@@ -372,6 +383,11 @@ async function checkHero(event) {
         }
         if(recovered.toLowerCase() === marketOwner) {
             if(myAddress > '') {
+                let chainId = await provider.getNetwork();
+                if(chainId.chainId !== 56) {
+                    alert("Connect wallet to the Binance Smart chain to check a hero");
+                    return;
+                }
                 let isLocked = await NFTContract.isLocked(data['data'].tokenId);
                 if(!isLocked) {
                     let NFTowner = await NFTContract.ownerOf(data['data'].tokenId);
