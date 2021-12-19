@@ -61,7 +61,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 window.ethereum.on('accountsChanged', function (accounts) {
                     window.location.reload();
                 });
-                document.getElementById('divConnect').style.display = 'none';
+                provider.getNetwork().then(chainId => {
+                    if(chainId.chainId !== 56) {
+                        document.getElementById('webConnect').innerHTML = 'Switch to Binance Smart Chain';
+//                        alert("Connect wallet to the Binance Smart chain");
+                    } else {
+                        document.getElementById('divConnect').style.display = 'none';
+                    }
+                });
+
 
             });
         } catch (e) {
@@ -78,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         localStorage.setItem('barrier',document.getElementById('Barrier').value);
         document.getElementById('Barrier').style.backgroundColor = 'lightgreen';
     });
-    document.getElementById('webConnect').addEventListener('click', ConnectEther);
+    document.getElementById('webConnect').addEventListener('click', ConnectBinance);
     document.getElementById('heroes').addEventListener('click', loadHeroMarket);
 //    document.getElementById('LoadLatest').addEventListener('click', loadHeroMarket);
     document.getElementById('bWrap').addEventListener('click', wrapBNB);
@@ -135,9 +143,37 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 });
 
-async function ConnectEther() {
+async function ConnectBinance() {
+    let chainsData = {
+        chainId: '0x38',
+        chainName: "Binance Smart Chain Mainnet",
+        nativeCurrency: {
+            name: "BNB",
+            symbol: "BNB",
+            decimals: 18
+        },
+        rpcUrls: ["https://bsc-dataseed1.binance.org"],
+        blockExplorerUrls: ["https://bscscan.com"]
+    };
     if (typeof window.ethereum !== "undefined") {
         document.getElementById('webConnect').disabled = true;
+        let chainId = await provider.getNetwork();
+        if(chainId.chainId !== 56) {
+            try {
+                await provider.send('wallet_switchEthereumChain',
+                    [{ chainId: '0x38' }]
+                );
+            } catch (switchError) {
+                if(typeof switchError === "string") {
+                    alert('Your wallet do not support network switch. Switch network manually if possible.');
+                    return;
+                }
+                await provider.send('wallet_addEthereumChain',
+                    [chainsData]
+                );
+            }
+        }
+
         try {
             myAddress = await provider.send("eth_requestAccounts", []);
             myAddress = myAddress[0];
