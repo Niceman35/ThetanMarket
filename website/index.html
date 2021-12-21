@@ -3,89 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - easiest way to buy a good hero in the ThetanArena Marketplace</TITLE>
-    <script src="ethers-5.4.umd.min.js" type="application/javascript" crossorigin="anonymous"></script>
-<STYLE>
-    body {
-        font-family: 'Arial',serif;
-        padding: 0;
-        margin: 0;
-    }
-    body > div {
-        padding: 3px 10px;
-    }
-    .heroes {
-        display: flex;
-        flex-wrap: wrap;
-    }
-    #myWBNB, #HeroesNum {
-        font-weight: bold;
-    }
-    .heroDiv {
-        cursor: pointer;
-        width: 50px;
-        height: 50px;
-        border: solid 1px black;
-        margin: 5px;
-        padding: 0;
-        background-size: contain;
-        line-height: 25px;
-        text-align: center;
-    }
-    #LoadLatest {
-        margin-left: 13px;
-    }
-    #divConnect {
-        padding: 30px;
-        text-align: center;
-    }
-    .marketTable {
-        border-collapse: collapse;
-        margin: 25px 0;
-        font-size: 0.9em;
-        font-family: sans-serif;
-        min-width: 400px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .marketTable thead tr {
-        background-color: #4c4c4c;
-        color: #ffffff;
-        text-align: left;
-    }
-    .marketTable th,
-    .marketTable td {
-        padding: 12px 15px;
-    }
-    .marketTable tbody tr {
-        border-bottom: 1px solid #dddddd;
-    }
-
-    .marketTable tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3;
-    }
-
-    .marketTable tbody tr:last-of-type {
-        border-bottom: 2px solid #009879;
-    }
-    .marketTable span.Common {
-        color: #466BF7;
-    }
-    .marketTable span.Epic {
-        color: #9954DC;
-    }
-    .marketTable span.Legendary {
-        color: #FF8700;
-    }
-    .marketTable span.Normal {
-        color: #00C5E2;
-    }
-    .marketTable span.Rare {
-        color: #0CBF6B;
-    }
-    .marketTable span.Mythical {
-        color: #F54AB0;
-    }
-</STYLE>
+    <link rel="stylesheet" href="styles.css?v=2">
+    <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
+    <SCRIPT src="main.js?v=4" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -105,6 +25,8 @@ Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span
 <BR>
 <DIV>Win rate: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <DIV>Min game left count: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV>Custom search: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
+    <SMALL>You can use <B>any parameters</B> on the marketplace and paste here everything from the <B>address bar</B>. To load the data check on <B>ANY</B> hero.</SMALL></DIV>
 <DIV id="heroes" class="heroes"></DIV>
 <DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
@@ -134,6 +56,5 @@ Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span
 </DIV>
 <HR>
 <DIV>Hosted on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>
-<SCRIPT src="main.js?v=3" type="application/javascript"></SCRIPT>
 </body>
 </html>
