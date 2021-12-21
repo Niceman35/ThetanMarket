@@ -1,91 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - легкий способ покупки героя на ThetanArena Marketplace</TITLE>
-    <script src="../ethers-5.4.umd.min.js" type="application/javascript" crossorigin="anonymous"></script>
-<STYLE>
-    body {
-        font-family: 'Arial',serif;
-        padding: 0;
-        margin: 0;
-    }
-    body > div {
-        padding: 3px 10px;
-    }
-    .heroes {
-        display: flex;
-        flex-wrap: wrap;
-    }
-    #myWBNB, #HeroesNum {
-        font-weight: bold;
-    }
-    .heroDiv {
-        cursor: pointer;
-        width: 50px;
-        height: 50px;
-        border: solid 1px black;
-        margin: 5px;
-        padding: 0;
-        background-size: contain;
-        line-height: 25px;
-        text-align: center;
-    }
-    #LoadLatest {
-        margin-left: 13px;
-    }
-    #divConnect {
-        padding: 30px;
-        text-align: center;
-    }
-    .marketTable {
-        border-collapse: collapse;
-        margin: 25px 0;
-        font-size: 0.9em;
-        font-family: sans-serif;
-        min-width: 400px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-    }
-
-    .marketTable thead tr {
-        background-color: #4c4c4c;
-        color: #ffffff;
-        text-align: left;
-    }
-    .marketTable th,
-    .marketTable td {
-        padding: 12px 15px;
-    }
-    .marketTable tbody tr {
-        border-bottom: 1px solid #dddddd;
-    }
-
-    .marketTable tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3;
-    }
-
-    .marketTable tbody tr:last-of-type {
-        border-bottom: 2px solid #009879;
-    }
-    .marketTable span.Common {
-        color: #466BF7;
-    }
-    .marketTable span.Epic {
-        color: #9954DC;
-    }
-    .marketTable span.Legendary {
-        color: #FF8700;
-    }
-    .marketTable span.Normal {
-        color: #00C5E2;
-    }
-    .marketTable span.Rare {
-        color: #0CBF6B;
-    }
-    .marketTable span.Mythical {
-        color: #F54AB0;
-    }
-</STYLE>
+    <link rel="stylesheet" href="../styles.css?v=2">
+    <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
+    <SCRIPT src="../main.js?v=4" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -104,6 +24,8 @@
 <BR>
 <DIV>Процент побед для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <DIV>Минимум остаток игр: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Сколько загружать с рынка (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV>Свой посковый запрос: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
+    <SMALL>Вы можете использовать <B>любые параметры</B> поиска на официальном маркете и вставить сюда все из <B>адресной строки</B>. Для загрузки данных нажмите на <B>ЛЮБОГО</B> героя.</SMALL></DIV>
 <DIV id="heroes" class="heroes"></DIV>
 <DIV id="autoUpdate">Авто-обновление (не ставьте ниже 10 секунд): <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
@@ -125,6 +47,7 @@
     * Легко проверить баланс WBNB, курсы обмена, а так же ваш WinRate.<BR>
     * Легкая конвертация BNB в WBNB и обратно.<BR>
     * Загрузка героев с официального маркета с автоматической сортировкой по прибыльности.<BR>
+    * Возможность сортировать по всем полям таблицы.<BR>
     * Возможность быстро проверить лоты на возможность их купить (фильтровать лоты с ошибками).<BR>
     * Возможность быстро купить героя прямо на странице.<BR>
     * Расчет прибыльности каждого героя. Учитывается количество оставшихся боев, редкость героя, уровень прокачки и установленный Вами процент побед.<BR>
@@ -134,6 +57,5 @@
 </DIV>
 <HR>
 <DIV>Сайт выложен на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHub</A>.</DIV>
-<SCRIPT src="../main.js?v=3" type="application/javascript"></SCRIPT>
 </body>
 </html>
