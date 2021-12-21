@@ -31,6 +31,7 @@ let myAddress = '';
 let thcPrice = 0;
 let bnbPrice = 0;
 document.addEventListener("DOMContentLoaded", function(event) {
+    document.addEventListener("click",function(b){function n(a,e){a.className=a.className.replace(u,"")+e}function p(a){return a.getAttribute("data-sort")||a.innerText}var u=/ dir-(u|d) /,c=/\bsortable\b/;b=b.target;if("TH"===b.nodeName)try{var q=b.parentNode,f=q.parentNode.parentNode;if(c.test(f.className)){var g,d=q.cells;for(c=0;c<d.length;c++)d[c]===b?g=c:n(d[c],"");d=" dir-d ";-1!==b.className.indexOf(" dir-d ")&&(d=" dir-u ");n(b,d);var h=f.tBodies[0],k=[].slice.call(h.rows,0),r=" dir-u "===d;k.sort(function(a, e){var l=p((r?a:e).cells[g]),m=p((r?e:a).cells[g]);return isNaN(l-m)?l.localeCompare(m):l-m});for(var t=h.cloneNode();k.length;)t.appendChild(k.splice(0,1)[0]);f.replaceChild(t,h)}}catch(a){}});
     if (typeof window.ethereum !== "undefined") {
         provider = new ethers.providers.Web3Provider(window.ethereum, "any");
         provider.on("network", (newNetwork, oldNetwork) => {
@@ -80,6 +81,21 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
     document.getElementById('Barrier').value = localStorage['barrier'];
 
+    document.getElementById('customSearch').addEventListener('change', function () {
+        let custoSearch = document.getElementById('customSearch');
+        let search = custoSearch.value;
+        if(search.length > 0) {
+            if (search.includes("marketplace.thetanarena.com/?")) {
+                custoSearch.style.backgroundColor = 'lightgreen';
+            } else {
+                alert('Wrong address format');
+                custoSearch.style.backgroundColor = 'lightcoral';
+                custoSearch.value = '';
+            }
+        } else {
+            custoSearch.style.backgroundColor = '';
+        }
+    });
     document.getElementById('Barrier').addEventListener('change', async function () {
         console.log('Barrier changed');
         let barrier = (document.getElementById('Barrier').value).replace(/'/g,"");
@@ -92,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     });
     document.getElementById('webConnect').addEventListener('click', ConnectBinance);
     document.getElementById('heroes').addEventListener('click', loadHeroMarket);
-//    document.getElementById('LoadLatest').addEventListener('click', loadHeroMarket);
     document.getElementById('bWrap').addEventListener('click', wrapBNB);
     document.getElementById('bUWrap').addEventListener('click', unWrapBNB);
     document.getElementById('autoStart').addEventListener('click', updateSwitch);
@@ -234,12 +249,23 @@ async function loadHeroMarket(event) {
     let load = document.getElementById('Load').value;
     if(heroID === '1000') load = 50;
     for(let i = 0; i <= Math.floor(load/51); i++) {
-        let loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=PriceAsc&battleMin='+gamesLeft+'&heroTypeIds='+heroID+'&from='+i*50+'&size=50';
-        if(heroID === '1000')
-            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin='+gamesLeft+'&from=0&size=50';
+        let loadURL = '';
+        if(document.getElementById('customSearch').value > '') {
+            let str = document.getElementById('customSearch').value;
+            let params = str.substring(
+                str.indexOf("a.com/?") + 7,
+                str.lastIndexOf("&page")
+            );
+            console.log(params);
+            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?' + params + '&from=' + i * 50 + '&size=50';
+        } else {
+            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=PriceAsc&battleMin=' + gamesLeft + '&heroTypeIds=' + heroID + '&from=' + i * 50 + '&size=50';
+            if (heroID === '1000')
+                loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin=' + gamesLeft + '&from=0&size=50';
+        }
         let responce = await fetch(loadURL);
         let data = await responce.json();
-            console.log(data);
+//            console.log(data);
         if(!data["data"])
             break;
         data["data"].forEach(function (item) {
@@ -294,9 +320,9 @@ function createTable(markettext) {
     let HeroR = ['Common', 'Epic', 'Legendary'];
     let SkinR = ['Normal', 'Rare', 'Mythical'];
     let avgBattles = [221, 360, 791];
-    let headers = ["Name (Skin)", "Battles", "Price BNB", "Price USD", "Profit USD", "Profit %", 'Link', 'Check'];
+    let headers = ["Name (Skin)", "Battles", "Price BNB", "Price $", "Profit $", "Profit %", 'Link', 'Check'];
     let table = document.createElement("TABLE");  //makes a table element for the page
-    table.className = 'marketTable';
+    table.className = 'marketTable sortable';
     table.addEventListener('click', checkHero);
     let heroSwitched = false;
     if(Object.keys(lastFound).length === 0) {
@@ -308,11 +334,11 @@ function createTable(markettext) {
             row.style.backgroundColor = 'lightgreen';
         }
         row.insertCell(0).innerHTML = '<span title="'+HeroR[markettext[i].heroR]+'" class="'+HeroR[markettext[i].heroR]+'">' + markettext[i].name + '</span> (' + '<span title="'+SkinR[markettext[i].skinR]+'"class="'+SkinR[markettext[i].skinR]+'">' + markettext[i].skin + '</span>) [' + markettext[i].level + ']';
-        row.insertCell(1).innerHTML = markettext[i].battles + ' (' + (markettext[i].battles * 100 / avgBattles[markettext[i].heroR]).toFixed(0) + '%)';
+        row.insertCell(1).outerHTML = '<TD data-sort="'+markettext[i].battles+'">' + markettext[i].battles + ' (' + (markettext[i].battles * 100 / avgBattles[markettext[i].heroR]).toFixed(0) + '%)</TD>';
         row.insertCell(2).innerHTML = (markettext[i].price).toFixed(4);
-        row.insertCell(3).innerHTML = '$' + (markettext[i].price*bnbPrice).toFixed(2);
-        row.insertCell(4).innerHTML = '<B>$' + (markettext[i].profit).toFixed(2) + '</B>';
-        row.insertCell(5).innerHTML = (markettext[i].percent).toFixed(0) + '%';
+        row.insertCell(3).innerHTML = (markettext[i].price*bnbPrice).toFixed(2);
+        row.insertCell(4).innerHTML = '<B>' + (markettext[i].profit).toFixed(2) + '</B>';
+        row.insertCell(5).innerHTML = (markettext[i].percent).toFixed(0);
         row.insertCell(6).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].refID + '" target="_blank">Market link</A>';
         row.insertCell(7).innerHTML = '<BUTTON data-status = "check" id="'+markettext[i].id+'">Check</BUTTON>';
         lastFound[markettext[i].id] = true;
@@ -321,7 +347,7 @@ function createTable(markettext) {
     let header = table.createTHead();
     let headerRow = header.insertRow(0);
     for(let i = 0; i < headers.length; i++) {
-        headerRow.insertCell(i).innerHTML = headers[i];
+        headerRow.insertCell(i).outerHTML = '<TH>' + headers[i] + '</TH>';
     }
 
     marketDiv.appendChild(table);
@@ -346,7 +372,7 @@ async function checkHero(event) {
     console.log('TokenID: ' + data['data'].tokenId);
     if(!localStorage['barrier']) {
         alert('You need to add the Auth Token to check the hero automatically');
-        setIgnore(event.target);
+        setIgnore(event.target, 'No Auth token');
         return;
     }
     if(data["data"]["sale"]) {
@@ -365,7 +391,7 @@ async function checkHero(event) {
         console.log('Sign: ' + signed['data']);
         if(!signed['data']) {
             alert('Wrong AuthToken or can not connect to the market');
-            setIgnore(event.target);
+            setIgnore(event.target, 'Wrong Auth token');
             return;
         }
         let criteriaMessageHash = getMessageHash(
@@ -401,15 +427,15 @@ async function checkHero(event) {
                             event.target.dataset['status'] = 'buy';
                             event.target.innerHTML = 'BUY';
                         } else {
-                            setIgnore(event.target);
+                            setIgnore(event.target, 'Bought/cancelled already');
                             console.log('Used signature');
                         }
                     } else {
-                        setIgnore(event.target);
+                        setIgnore(event.target, 'Bought already');
                         console.log('Not NFT owner');
                     }
                 } else {
-                    setIgnore(event.target);
+                    setIgnore(event.target, 'NFT is locked');
                     console.log('NFT is locked');
                 }
             } else {
@@ -419,17 +445,18 @@ async function checkHero(event) {
                 event.target.innerHTML = 'Ok';
             }
         } else {
-            setIgnore(event.target);
+            setIgnore(event.target, 'Wrong signature');
             console.log('Wrong signature');
         }
     } else {
-        setIgnore(event.target);
+        setIgnore(event.target, 'Not for sale');
         console.log('Not for sale');
     }
 }
 
-function setIgnore(div) {
+function setIgnore(div, reason) {
     div.style.backgroundColor = 'orangered';
+    div.title = reason;
     div.dataset['status'] = 'ignore';
     div.innerHTML = 'Ignore';
 }
