@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - легкий способ покупки героя на ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="../styles.css?v=2">
+    <link rel="stylesheet" href="../styles.css?v=3">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=4" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=5" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -23,17 +23,19 @@
 </DIV>
 <BR>
 <DIV>Процент побед для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
-<DIV>Минимум остаток игр: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Сколько загружать с рынка (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
-<DIV>Свой посковый запрос: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
-    <SMALL>Вы можете использовать <B>любые параметры</B> поиска на официальном маркете и вставить сюда все из <B>адресной строки</B>. Для загрузки данных нажмите на <B>ЛЮБОГО</B> героя.</SMALL></DIV>
+<BR><DIV><B>Фильтры:</B></DIV>
+<DIV>Минимум остаток игр: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. </DIV>
 <DIV id="heroes" class="heroes"></DIV>
+<DIV>Свой посковый запрос: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
+    <SMALL>Вы можете использовать <B>любые параметры</B> поиска на официальном маркете и вставить сюда все из <B>адресной строки</B>.</SMALL></DIV>
+<BR><DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
 <DIV id="autoUpdate">Авто-обновление (не ставьте ниже 10 секунд): <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <DIV><B>Как использовать?</B><BR>
-    * <B>Нажать на героя</B>, чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности.<BR>
+    * Выбрать героев, нажать <B>"Загрузить"</B> чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности (доход минус цена).<BR>
     * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
-    * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли лот купить (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
+    * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли купить лот (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
     * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
     * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
 </DIV><BR>
