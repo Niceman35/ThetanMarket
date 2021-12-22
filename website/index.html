@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - easiest way to buy a good hero in the ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=4" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=5" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -15,24 +15,25 @@
 <DIV><A href="ru/index.html"><B>РУССКАЯ версия</B></A></DIV><BR>
 <DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
-<DIV>BNB price: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
 <DIV>Balance: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
 <DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
 <DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
 Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>%
 </DIV>
-<BR>
-<DIV>Win rate: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
-<DIV>Min game left count: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
-<DIV>Custom search: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
-    <SMALL>You can use <B>any parameters</B> on the marketplace and paste here everything from the <B>address bar</B>. To load the data check on <B>ANY</B> hero.</SMALL></DIV>
+<BR><DIV>Win rate for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<BR><DIV><B>Filters:</B></DIV>
+<DIV>Min game left count: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">.</DIV>
 <DIV id="heroes" class="heroes"></DIV>
+<DIV>Custom search: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
+    <SMALL>You can use <B>any parameters</B> on the marketplace and paste here everything from the <B>address bar</B>.</SMALL></DIV>
+<BR><DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
 <DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <DIV><B>How to use?</B><BR>
-    * <B>Click on the hero</B> to load or update items from the official market, sorted by the profitability.<BR>
+    * Choose heroes and <B>click "Load"</B> to load or update items from the official market, sorted by the profitability (earn minus cost).<BR>
     * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet for <B>advanced</B> features.<BR>
     * Click the "<B>Check</B>" button to check if a lot is purchasable (if not, you can click the "Ignore" button to ignore that lot in future searches).<BR>
     * Click on the <B>"BUY"</B> button and confirm the transaction in the Metamask to buy a hero (it will appear in your market inventory in a few minutes).<BR>

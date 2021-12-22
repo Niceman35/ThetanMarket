@@ -10,10 +10,7 @@ body > div {
     display: flex;
     flex-wrap: wrap;
 }
-#myWBNB, #HeroesNum {
-    font-weight: bold;
-}
-.heroDiv {
+.heroes div {
     cursor: pointer;
     width: 50px;
     height: 50px;
@@ -24,6 +21,17 @@ body > div {
     line-height: 25px;
     text-align: center;
 }
+
+.heroes div.selected {
+    outline: 3px solid forestgreen;
+}
+#updateButton {
+    padding: 5px;
+    width: 200px;
+}
+#myWBNB, #HeroesNum {
+    font-weight: bold;
+}
 #LoadLatest {
     margin-left: 13px;
 }
@@ -33,7 +41,7 @@ body > div {
 }
 .marketTable {
     border-collapse: collapse;
-    margin: 25px 0;
+    margin: 10px 0;
     font-size: 0.9em;
     font-family: sans-serif;
     min-width: 400px;
@@ -47,7 +55,7 @@ body > div {
 }
 .marketTable th,
 .marketTable td {
-    padding: 12px 15px;
+    padding: 10px 12px;
 }
 .marketTable tbody tr {
     border-bottom: 1px solid #dddddd;
@@ -58,6 +66,7 @@ body > div {
 }
 .marketTable th:first-child {
     border-top-left-radius: 4px;
+    min-width: 220px;
 }
 .marketTable th:last-child {
     border-top-right-radius: 4px;
@@ -89,16 +98,16 @@ body > div {
     color: inherit;
     content: ' \025B4';
 }
-.marketTable tbody tr td:nth-child(3), .marketTable tbody tr td:nth-child(4), .marketTable tbody tr td:nth-child(5), .marketTable tbody tr td:nth-child(6) {
+.marketTable tbody tr td:nth-child(3), .marketTable tbody tr td:nth-child(4), .marketTable tbody tr td:nth-child(5), .marketTable tbody tr td:nth-child(6), .marketTable tbody tr td:nth-child(7) {
     text-align: right;
 }
-.marketTable tbody tr td:nth-child(4)::before, .marketTable tbody tr td:nth-child(5)::before {
+.marketTable tbody tr td:nth-child(4)::before, .marketTable tbody tr td:nth-child(5)::before, .marketTable tbody tr td:nth-child(6)::before {
     content: "$";
 }
-.marketTable th:nth-child(7), .marketTable th:nth-child(8) {
+.marketTable th:nth-child(8), .marketTable th:nth-child(9) {
     pointer-events: none;
 }
-.marketTable tbody tr td:nth-child(6)::after {
+.marketTable tbody tr td:nth-child(7)::after {
     content: "%";
 }
 .marketTable tbody tr:last-of-type {

@@ -107,7 +107,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
     });
     document.getElementById('webConnect').addEventListener('click', ConnectBinance);
-    document.getElementById('heroes').addEventListener('click', loadHeroMarket);
+    document.getElementById('heroes').addEventListener('click', selectHero);
+    document.getElementById('updateButton').addEventListener('click', loadHeroMarket);
     document.getElementById('bWrap').addEventListener('click', wrapBNB);
     document.getElementById('bUWrap').addEventListener('click', unWrapBNB);
     document.getElementById('autoStart').addEventListener('click', updateSwitch);
@@ -120,14 +121,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
                 if (!data["data"]["configs"].hasOwnProperty(prop)) continue;
                 let item = data["data"]["configs"][prop];
                 let div = document.createElement('div');
-                div.className = 'heroDiv';
                 div.style.backgroundImage = "url('https://assets.thetanarena.com/" + item['imgSmallDefaultIcon']+"')";
                 div.title = item['name'];
                 div.id = 'heroId_' +prop;
                 heroDiv.appendChild(div);
             }
             let div = document.createElement('div');
-            div.className = 'heroDiv';
             div.innerHTML = 'Latest\nitems';
             div.title = 'Load latest items for all heroes';
             div.id = 'heroId_1000';
@@ -226,28 +225,17 @@ async function ConnectBinance() {
 
 let lastFound = {};
 async function loadHeroMarket(event) {
-    let heroID = '';
-    if(event && event.target) {
-        if (event.target.id === 'heroes') return;
-        heroID = event.target.id.substring(7);
-    } else if(document.getElementById('heroes').dataset['curhero']) {
-        heroID = document.getElementById('heroes').dataset['curhero'];
-        autoSecondsLeft = document.getElementById('autoDelay').value*1;
-    } else {
+    let heroIDs = document.getElementById('heroes').dataset['curhero'];
+    if(heroIDs === '') {
+        alert('Choose a hero(es).');
         return;
     }
-    let lastHero = document.getElementById('heroes').dataset['curhero'];
-    if(lastHero && heroID !== lastHero) {
-        document.getElementById('heroId_'+lastHero).style.border = '1px solid black';
-        lastFound = {};
-    }
-    document.getElementById('heroes').dataset['curhero'] = heroID;
-    document.getElementById('heroId_'+heroID).style.border = '3px solid green';
     document.getElementById('MintStatus').innerHTML = '<span>Loading...</span>';
+    autoSecondsLeft = document.getElementById('autoDelay').value*1;
     let markettext = [];
     let gamesLeft = document.getElementById('GamesLeft').value;
     let load = document.getElementById('Load').value;
-    if(heroID === '1000') load = 50;
+    if(heroIDs === '1000') load = 50;
     for(let i = 0; i <= Math.floor(load/51); i++) {
         let loadURL = '';
         if(document.getElementById('customSearch').value > '') {
@@ -259,8 +247,8 @@ async function loadHeroMarket(event) {
             console.log(params);
             loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?' + params + '&from=' + i * 50 + '&size=50';
         } else {
-            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=PriceAsc&battleMin=' + gamesLeft + '&heroTypeIds=' + heroID + '&from=' + i * 50 + '&size=50';
-            if (heroID === '1000')
+            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=PriceAsc&battleMin=' + gamesLeft + '&heroTypeIds=' + heroIDs + '&from=' + i * 50 + '&size=50';
+            if (heroIDs === '1000')
                 loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin=' + gamesLeft + '&from=0&size=50';
         }
         let responce = await fetch(loadURL);
@@ -320,7 +308,7 @@ function createTable(markettext) {
     let HeroR = ['Common', 'Epic', 'Legendary'];
     let SkinR = ['Normal', 'Rare', 'Mythical'];
     let avgBattles = [221, 360, 791];
-    let headers = ["Name (Skin)", "Battles", "Price BNB", "Price $", "Profit $", "Profit %", 'Link', 'Check'];
+    let headers = ["Name (Skin)", "Battles (Avg)", "Price BNB", "Price $", "$/Battle", "Profit $", "Profit %", 'Link', 'Check'];
     let table = document.createElement("TABLE");  //makes a table element for the page
     table.className = 'marketTable sortable';
     table.addEventListener('click', checkHero);
@@ -337,10 +325,11 @@ function createTable(markettext) {
         row.insertCell(1).outerHTML = '<TD data-sort="'+markettext[i].battles+'">' + markettext[i].battles + ' (' + (markettext[i].battles * 100 / avgBattles[markettext[i].heroR]).toFixed(0) + '%)</TD>';
         row.insertCell(2).innerHTML = (markettext[i].price).toFixed(4);
         row.insertCell(3).innerHTML = (markettext[i].price*bnbPrice).toFixed(2);
-        row.insertCell(4).innerHTML = '<B>' + (markettext[i].profit).toFixed(2) + '</B>';
-        row.insertCell(5).innerHTML = (markettext[i].percent).toFixed(0);
-        row.insertCell(6).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].refID + '" target="_blank">Market link</A>';
-        row.insertCell(7).innerHTML = '<BUTTON data-status = "check" id="'+markettext[i].id+'">Check</BUTTON>';
+        row.insertCell(4).innerHTML = ((markettext[i].price*bnbPrice)/markettext[i].battles).toFixed(2);
+        row.insertCell(5).innerHTML = '<B>' + (markettext[i].profit).toFixed(2) + '</B>';
+        row.insertCell(6).innerHTML = (markettext[i].percent).toFixed(0);
+        row.insertCell(7).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].refID + '" target="_blank">Market link</A>';
+        row.insertCell(8).innerHTML = '<BUTTON data-status = "check" id="'+markettext[i].id+'">Check</BUTTON>';
         lastFound[markettext[i].id] = true;
     }
 
@@ -351,6 +340,38 @@ function createTable(markettext) {
     }
 
     marketDiv.appendChild(table);
+}
+
+function selectHero(event) {
+    if(event && event.target && event.target.id !== 'heroes') {
+        event.target.classList.toggle('selected');
+    } else {
+        return;
+    }
+    let lastHero = document.getElementById('heroes').dataset['curhero'];
+    let heroIDs = '';
+    if(event.target.id === 'heroId_1000') {
+        let herosDivs = document.getElementById('heroes').childNodes;
+        for (let i = 0; i < herosDivs.length; i++) {
+            herosDivs[i].className = '';
+        }
+        heroIDs = '1000';
+        event.target.className = 'selected';
+    } else {
+        document.getElementById('heroId_1000').className = '';
+        let herosDivs = document.getElementById('heroes').childNodes;
+        let selectedH = [];
+        for (let i = 0; i < herosDivs.length; i++) {
+            if (herosDivs[i].className === 'selected') {
+                selectedH.push(herosDivs[i].id.substring(7));
+            }
+        }
+        heroIDs = selectedH.join('%2C');
+    }
+    if(lastHero && heroIDs !== lastHero) {
+        lastFound = {};
+    }
+    document.getElementById('heroes').dataset['curhero'] = heroIDs;
 }
 
 async function checkHero(event) {
