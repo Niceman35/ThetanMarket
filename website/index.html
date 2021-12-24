@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - easiest way to buy a good hero in the ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=5" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=7" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -22,40 +23,75 @@
 <DIV id="accStats" style="display: none;">
 Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>%
 </DIV>
-<BR><DIV>Win rate for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<BR><DIV><B>Win rate</B> for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Filters:</B></DIV>
-<DIV>Min game left count: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">.</DIV>
-<DIV id="heroes" class="heroes"></DIV>
-<DIV>Custom search: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
-    <SMALL>You can use <B>any parameters</B> on the marketplace and paste here everything from the <B>address bar</B>.</SMALL></DIV>
-<BR><DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<form id="filtersForm">
+<DIV id="FiltersDiv">
+    <fieldset><legend>Hero rarity:</legend>
+        <label><input type="checkbox" name="FHeroRarity[]" value="0" /> Common</label><BR>
+        <label><input type="checkbox" name="FHeroRarity[]" value="1" /> Epic</label><BR>
+        <label><input type="checkbox" name="FHeroRarity[]" value="2" /> Legendary</label><BR>
+    </fieldset>
+    <fieldset><legend>Role:</legend>
+        <label><input type="checkbox" name="FRole[]" value="0" /> Tank</label><BR>
+        <label><input type="checkbox" name="FRole[]" value="1" /> Marksman</label><BR>
+        <label><input type="checkbox" name="FRole[]" value="2" /> Assassin</label><BR>
+    </fieldset>
+    <fieldset><legend>Skin rarity:</legend>
+        <label><input type="checkbox" name="FSkinRarity[]" value="0" /> Normal</label><BR>
+        <label><input type="checkbox" name="FSkinRarity[]" value="1" /> Rare</label><BR>
+        <label><input type="checkbox" name="FSkinRarity[]" value="2" /> Mythical</label><BR>
+    </fieldset>
+    <fieldset><legend>Min. level:</legend>
+        <P>Min:1, Max: 11</P>
+        <label>Level: <input id="fLevelMin" type="number" value="1" min="1" max="11" step="1" size="2"/></label><BR>
+    </fieldset>
+    <fieldset><legend>Min. Trophy:</legend>
+        <P>H = 1, SS = 10</P>
+        <label>Trophy: <input id="fTrophyMin" type="number" value="1" min="1" max="10" step="1" size="2"/></label><BR>
+    </fieldset>
+    <fieldset><LEGEND>Battles left:</LEGEND>
+        <P>THC games left</P>
+        <label>Min. : <INPUT id="fBattleMin" value="150" type="number" min="0" max="1000" size="3"></label>
+    </fieldset>
+    <fieldset><LEGEND>Percent left:</LEGEND>
+        <P>THC games left</P>
+        <label>Min. : <INPUT id="fBatPercentMin" value="0" type="number" min="0" max="100" size="3">%</label>
+    </fieldset>
+    <DIV id="heroes" class="heroes"></DIV>
+</DIV>
+</form>
+<DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
 <DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
+<HR>
 <DIV><B>How to use?</B><BR>
-    * Choose heroes and <B>click "Load"</B> to load or update items from the official market, sorted by the profitability (earn minus cost).<BR>
+    * Choose Filters and <B>click "Load"</B> to load or update items from the official market, sorted by the profitability (earn minus cost).<BR>
     * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet for <B>advanced</B> features.<BR>
     * Click the "<B>Check</B>" button to check if a lot is purchasable (if not, you can click the "Ignore" button to ignore that lot in future searches).<BR>
     * Click on the <B>"BUY"</B> button and confirm the transaction in the Metamask to buy a hero (it will appear in your market inventory in a few minutes).<BR>
-    * You can use the tool without an Auth Token or Wallet connection.<BR>
+    * You can use the tool without an Auth Token or Wallet connection (just use Market link).<BR>
 </DIV><BR>
 <DIV><B>How to get the Auth token to check lots?</B><BR>
     * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
-    * Go to your "inventory", click F12, in the "Console" paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
+    * Go to your "inventory", click F12, in the "Console" tab paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
     * Copy the long code and paste it into the "Market Auth token" field above.<BR>
+    * You will be able to check and BUY heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
 </DIV><BR>
 <DIV><B>Website Features</B><BR>
-    * Easily check your WBNB balance, exchange rates and win rate.<BR>
-    * Easily convert from BNB to WBNB and back again.<BR>
-    * Load items from the official market and sort by profitability.<BR>
-    * It is possible to check if an item can be bought and ignore faulty items.<BR>
-    * It is possible to buy heroes directly from this page.<BR>
-    * Profitability is calculated based on remaining fights, hero rarity, hero level and set WinRate.<BR>
-    * You can load lots by hero or most recently added lots.<BR>
-    * Set the minimum number of games remaining and pages to load to optimize loading speed.<BR>
-    * Automatic refresh function with new items highlight.<BR>
+    * Easily <B>check</B> your WBNB balance, exchange rates and win rate.<BR>
+    * Easily <B>convert</B> between BNB and WBNB.<BR>
+    * Load items from the official market and sort by <B>profitability</B>.<BR>
+    * It is possible to <B>quick sort</B> by any collumn.
+    * It is possible to check if an item can be bought and <B>ignore</B> faulty items.<BR>
+    * It is possible to <B>buy</B> heroes directly from this page.<BR>
+    * Profitability is calculated based on remaining fights, hero rarity, hero level and <B>WinRate</B> set.<BR>
+    * You can load lots using filters or most recently added lots.<BR>
+    * Set the <B>minimum number</B> of games remaining/percent games left and pages to load to optimize loading speed.<BR>
+    * <B>Automatic</B> refresh function with new items <B>highlight</B>.<BR>
 </DIV>
 <HR>
-<DIV>Hosted on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>
+<DIV><A href="https://ipfs.io/ipns/thetanmarket.live">Hosted</A> on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>
 </body>
 </html>

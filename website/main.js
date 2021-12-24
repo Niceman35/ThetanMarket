@@ -27,6 +27,9 @@ const NFTAbi = [
 ];
 let NFTContract;
 
+let Filters = {
+    'sort' : 'PriceAsc',
+};
 let myAddress = '';
 let thcPrice = 0;
 let bnbPrice = 0;
@@ -80,22 +83,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         alert('Not found Web3 compatible Ethereum wallet.');
     }
     document.getElementById('Barrier').value = localStorage['barrier'];
-
-    document.getElementById('customSearch').addEventListener('change', function () {
-        let custoSearch = document.getElementById('customSearch');
-        let search = custoSearch.value;
-        if(search.length > 0) {
-            if (search.includes("marketplace.thetanarena.com/?")) {
-                custoSearch.style.backgroundColor = 'lightgreen';
-            } else {
-                alert('Wrong address format');
-                custoSearch.style.backgroundColor = 'lightcoral';
-                custoSearch.value = '';
-            }
-        } else {
-            custoSearch.style.backgroundColor = '';
-        }
-    });
     document.getElementById('Barrier').addEventListener('change', async function () {
         console.log('Barrier changed');
         let barrier = (document.getElementById('Barrier').value).replace(/'/g,"");
@@ -107,23 +94,27 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
     });
     document.getElementById('webConnect').addEventListener('click', ConnectBinance);
-    document.getElementById('heroes').addEventListener('click', selectHero);
     document.getElementById('updateButton').addEventListener('click', loadHeroMarket);
     document.getElementById('bWrap').addEventListener('click', wrapBNB);
     document.getElementById('bUWrap').addEventListener('click', unWrapBNB);
     document.getElementById('autoStart').addEventListener('click', updateSwitch);
+    document.getElementById('FiltersDiv').addEventListener('click', heroFilters);
 
     fetch('https://data.thetanarena.com/thetan/v1/hero/feConfigs?configVer=-1')
         .then(response => response.json())
         .then(data => {
+            let heroesRarity = [0,0,0,1,0,0,0,1,0,0,2,1,2,2,1,0,1,1,1,2,1,2,2,0,0];
+
             let heroDiv = document.getElementById('heroes');
-            for (var prop in data["data"]["configs"]) {
-                if (!data["data"]["configs"].hasOwnProperty(prop)) continue;
-                let item = data["data"]["configs"][prop];
+            for (var id in data["data"]["configs"]) {
+                if (!data["data"]["configs"].hasOwnProperty(id)) continue;
+                let item = data["data"]["configs"][id];
                 let div = document.createElement('div');
                 div.style.backgroundImage = "url('https://assets.thetanarena.com/" + item['imgSmallDefaultIcon']+"')";
                 div.title = item['name'];
-                div.id = 'heroId_' +prop;
+                div.id = 'heroId_' +id;
+                div.dataset['rare'] = heroesRarity[id];
+                div.dataset['role'] = item['role'];
                 heroDiv.appendChild(div);
             }
             let div = document.createElement('div');
@@ -134,41 +125,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         });
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/1')
         .then(response => response.json())
-        .then(data => {thcPrice = data['data'];document.getElementById('THC').innerHTML = thcPrice;});
+        .then(data => {thcPrice = data['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');});
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/32')
         .then(response => response.json())
-        .then(data => {bnbPrice = data['data'];document.getElementById('WBNB').innerHTML = bnbPrice;});
+        .then(data => {bnbPrice = data['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');});
     if(localStorage['barrier'] > '') {
         loadAccStats(localStorage['barrier']);
     }
-
 });
-
-async function loadAccStats(barrier) {
-    let responce = await fetch("https://data.thetanarena.com/thetan/v1/profile",
-        {
-            method: 'GET',
-            withCredentials: true,
-            headers: new Headers({
-                'Authorization': 'Bearer ' + barrier,
-                'Content-Type': 'application/json'
-            })
-        });
-    let data = await responce.json();
-    if(data['success']) {
-        document.getElementById('accStats').style.display = 'block';
-        document.getElementById('accUsername').innerHTML = data['data']['username'];
-        document.getElementById('accBattles').innerHTML = data['data']['playerStatistic']['battle'];
-        document.getElementById('accWins').innerHTML = data['data']['playerStatistic']['victory'];
-        document.getElementById('accWinRate').innerHTML = (data['data']['playerStatistic']['victory'] / data['data']['playerStatistic']['battle'] * 100).toFixed(0);
-        return true;
-    } else {
-        alert('Wrong Auth Token provided');
-        localStorage.setItem('barrier','');
-        document.getElementById('Barrier').value = '';
-        return false;
-    }
-}
 
 async function ConnectBinance() {
     let chainsData = {
@@ -223,37 +187,140 @@ async function ConnectBinance() {
     }
 }
 
+function heroFilters(event) {
+    let fRarity = [].filter.call(document.forms['filtersForm'].elements['FHeroRarity[]'], (c) => c.checked).map(c => c.value);
+    let fRole = [].filter.call(document.forms['filtersForm'].elements['FRole[]'], (c) => c.checked).map(c => c.value);
+    let fSkins = [].filter.call(document.forms['filtersForm'].elements['FSkinRarity[]'], (c) => c.checked).map(c => c.value);
+
+    if(event.target.name === 'FHeroRarity[]' || event.target.name === 'FRole[]') {
+        let herosDivs = document.getElementById('heroes').childNodes;
+        for (let i = 0; i < herosDivs.length; i++) {
+            let selected = 0;
+            if (fRarity.length && fRole.length) {
+                if (fRarity.includes(herosDivs[i].dataset['rare']) && fRole.includes(herosDivs[i].dataset['role']))
+                    selected = 1;
+            } else {
+                if (fRarity.includes(herosDivs[i].dataset['rare']))
+                    selected = 1;
+                if (fRole.includes(herosDivs[i].dataset['role']))
+                    selected = 1;
+            }
+            if (selected) {
+                herosDivs[i].className = 'selected';
+                herosDivs[i].style.display = 'block';
+            } else {
+                herosDivs[i].className = '';
+                if (fRarity.length || fRole.length)
+                    herosDivs[i].style.display = 'none';
+                else
+                    herosDivs[i].style.display = 'block';
+            }
+        }
+    }
+
+    if(event.target.parentElement.id === 'heroes') {
+        let herosDivs = document.getElementById('heroes').childNodes;
+        if(event.target.id === 'heroId_1000') {
+            for (let i = 0; i < herosDivs.length; i++) {
+                herosDivs[i].className = '';
+            }
+            document.getElementById('heroId_1000').className = 'selected';
+        } else {
+            event.target.classList.toggle('selected');
+            document.getElementById('heroId_1000').className = '';
+        }
+    }
+
+    let selectedH = [].filter.call(document.getElementById('heroes').childNodes, (c) => (c.className === 'selected')).map(c => c.id.substring(7));
+
+    Filters['heroTypeIds'] = selectedH.join('%2C');
+    if(fSkins.length > 0)
+        Filters['skinRarity'] = fSkins.join('%2C');
+    else
+        delete Filters['skinRarity'];
+}
+
+async function loadAccStats(barrier) {
+    let responce = await fetch("https://data.thetanarena.com/thetan/v1/profile",
+        {
+            method: 'GET',
+            withCredentials: true,
+            headers: new Headers({
+                'Authorization': 'Bearer ' + barrier,
+                'Content-Type': 'application/json'
+            })
+        });
+    let data = await responce.json();
+    if(data['success']) {
+        document.getElementById('accStats').style.display = 'block';
+        document.getElementById('accUsername').innerHTML = data['data']['username'];
+        document.getElementById('accBattles').innerHTML = data['data']['playerStatistic']['battle'];
+        document.getElementById('accWins').innerHTML = data['data']['playerStatistic']['victory'];
+        document.getElementById('accWinRate').innerHTML = (data['data']['playerStatistic']['victory'] / data['data']['playerStatistic']['battle'] * 100).toFixed(0);
+        return true;
+    } else {
+        alert('Wrong Auth Token provided');
+        localStorage.setItem('barrier','');
+        document.getElementById('Barrier').value = '';
+        return false;
+    }
+}
+
 let lastFound = {};
+
+function getSearchURL() {
+    if(document.getElementById('fLevelMin').value > 1)
+        Filters['levelMin'] = document.getElementById('fLevelMin').value;
+    else
+        delete Filters['levelMin'];
+
+    if(document.getElementById('fTrophyMin').value > 1)
+        Filters['trophyMin'] = document.getElementById('fTrophyMin').value;
+    else
+        delete Filters['trophyMin'];
+
+    if(document.getElementById('fBatPercentMin').value > 0)
+        Filters['batPercentMin'] = document.getElementById('fBatPercentMin').value;
+    else
+        delete Filters['batPercentMin'];
+    Filters['battleMin'] = document.getElementById('fBattleMin').value;
+
+    let newFilters = [];
+    for(let fName in Filters) {
+        newFilters.push(fName + '=' + Filters[fName]);
+    }
+    newFilters = newFilters.join('&');
+
+    if (Filters['heroTypeIds'] === '1000') {
+        newFilters = 'sort=Latest&battleMin='+ Filters['battleMin'] +'&batPercentMin='+ document.getElementById('fBatPercentMin').value;
+    }
+    let lastFilters = document.getElementById('FiltersDiv').dataset['curhero'];
+    if(lastFilters && newFilters !== lastFilters) {
+        lastFound = {};
+    }
+    document.getElementById('FiltersDiv').dataset['curhero'] = newFilters;
+
+    return 'https://data.thetanarena.com/thetan/v1/nif/search?' + newFilters;
+}
+
 async function loadHeroMarket(event) {
-    let heroIDs = document.getElementById('heroes').dataset['curhero'];
-    if(heroIDs === '') {
+    if(Filters['heroTypeIds'] === '') {
         alert('Choose a hero(es).');
         return;
     }
     document.getElementById('MintStatus').innerHTML = '<span>Loading...</span>';
     autoSecondsLeft = document.getElementById('autoDelay').value*1;
     let markettext = [];
-    let gamesLeft = document.getElementById('GamesLeft').value;
+    let searchURL = getSearchURL();
+    console.log(searchURL);
     let load = document.getElementById('Load').value;
-    if(heroIDs === '1000') load = 50;
+    if(Filters['heroTypeIds'] === '1000') load = 50;
     for(let i = 0; i <= Math.floor(load/51); i++) {
-        let loadURL = '';
-        if(document.getElementById('customSearch').value > '') {
-            let str = document.getElementById('customSearch').value;
-            let params = str.substring(
-                str.indexOf("a.com/?") + 7,
-                str.lastIndexOf("&page")
-            );
-            console.log(params);
-            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?' + params + '&from=' + i * 50 + '&size=50';
-        } else {
-            loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=PriceAsc&battleMin=' + gamesLeft + '&heroTypeIds=' + heroIDs + '&from=' + i * 50 + '&size=50';
-            if (heroIDs === '1000')
-                loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin=' + gamesLeft + '&from=0&size=50';
-        }
+        let loadURL = searchURL + '&from=' + i * 50 + '&size=50';
+        // if (heroIDs === '1000')
+        //     loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin=' + gamesLeft + '&from=0&size=50';
         let responce = await fetch(loadURL);
         let data = await responce.json();
-//            console.log(data);
         if(!data["data"])
             break;
         data["data"].forEach(function (item) {
@@ -272,19 +339,21 @@ async function loadHeroMarket(event) {
             reward += LevelBonus[item.heroRarity][Math.floor((item.level-1)/2)];
             let winRate = parseInt(document.getElementById('WinRate').value)/100;
             let loseRate = 1 - winRate;
-            let profit = ((item.battleCap * loseRate + item.battleCap * winRate * reward) * thcPrice) - (item.price / 100000000 * bnbPrice);
-            let percent = Math.round((profit / (item.price / 100000000 * bnbPrice))*100);
-//                //if (profit > 50)
+            let USDPrice = (item.price / 100000000 * bnbPrice);
+            let profit = ((item.battleCap * loseRate * 1 + item.battleCap * winRate * reward) * thcPrice) - USDPrice;
+            let percent = Math.round((profit / USDPrice) * 100);
             if(!localStorage[item.id]) {
                 markettext.push({
                     'name': item.name,
                     'skin': item.skinName,
                     'level': item.level,
+                    'trophy': item.trophyClass,
                     'price': item.price / 100000000,
                     'profit': profit,
                     'percent': percent,
                     'refID': item.refId,
                     'battles': item.battleCap,
+                    'battlesMax': item.battleCapMax,
                     'heroR': item.heroRarity,
                     'skinR': item.skinRarity,
                     'id': item.id
@@ -304,11 +373,15 @@ async function loadHeroMarket(event) {
 function createTable(markettext) {
     document.getElementById('MintStatus').innerHTML = 'Updated';
     let marketDiv = document.getElementById('marketData');
+    if(markettext.length === 0) {
+        marketDiv.innerHTML = '<BR><DIV>Nothing found</DIV><BR>';
+        return;
+    }
     marketDiv.innerHTML = '';
     let HeroR = ['Common', 'Epic', 'Legendary'];
     let SkinR = ['Normal', 'Rare', 'Mythical'];
-    let avgBattles = [221, 360, 791];
-    let headers = ["Name (Skin)", "Battles (Avg)", "Price BNB", "Price $", "$/Battle", "Profit $", "Profit %", 'Link', 'Check'];
+    let trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
+    let headers = ["Name (Skin)", "Left/Max/Used", "Price BNB", "Price $", "$/Battle", "Profit $", "ROI %", 'Link', 'Check'];
     let table = document.createElement("TABLE");  //makes a table element for the page
     table.className = 'marketTable sortable';
     table.addEventListener('click', checkHero);
@@ -318,11 +391,15 @@ function createTable(markettext) {
     }
     for(let i = 0; i < markettext.length; i++) {
         let row = table.insertRow(i);
+        let percentUsed = (markettext[i].battlesMax - markettext[i].battles)*100/markettext[i].battlesMax;
+        let colorUsed = '';
+        if(percentUsed < 10) colorUsed = '" style="color:green';
+        if(percentUsed > 70) colorUsed = '" style="color:red';
         if(!heroSwitched && !lastFound[markettext[i].id]) {
             row.style.backgroundColor = 'lightgreen';
         }
-        row.insertCell(0).innerHTML = '<span title="'+HeroR[markettext[i].heroR]+'" class="'+HeroR[markettext[i].heroR]+'">' + markettext[i].name + '</span> (' + '<span title="'+SkinR[markettext[i].skinR]+'"class="'+SkinR[markettext[i].skinR]+'">' + markettext[i].skin + '</span>) [' + markettext[i].level + ']';
-        row.insertCell(1).outerHTML = '<TD data-sort="'+markettext[i].battles+'">' + markettext[i].battles + ' (' + (markettext[i].battles * 100 / avgBattles[markettext[i].heroR]).toFixed(0) + '%)</TD>';
+        row.insertCell(0).innerHTML = '<span title="'+ HeroR[markettext[i].heroR] +'" class="'+ HeroR[markettext[i].heroR] +'">'+ markettext[i].name +'</span> (<span title="'+SkinR[markettext[i].skinR]+'" class="'+ SkinR[markettext[i].skinR] +'">'+ markettext[i].skin +'</span>) ['+ markettext[i].level +'] ('+ trophy[markettext[i].trophy] +')';
+        row.insertCell(1).outerHTML = '<TD data-sort="'+ markettext[i].battles + colorUsed +'"><B>'+ markettext[i].battles +'</B>&nbsp;/&nbsp;'+ markettext[i].battlesMax +'&nbsp;/&nbsp;'+ (markettext[i].battlesMax - markettext[i].battles) +'&nbsp;('+ percentUsed.toFixed(0) +'%)</TD>';
         row.insertCell(2).innerHTML = (markettext[i].price).toFixed(4);
         row.insertCell(3).innerHTML = (markettext[i].price*bnbPrice).toFixed(2);
         row.insertCell(4).innerHTML = ((markettext[i].price*bnbPrice)/markettext[i].battles).toFixed(2);
@@ -340,38 +417,6 @@ function createTable(markettext) {
     }
 
     marketDiv.appendChild(table);
-}
-
-function selectHero(event) {
-    if(event && event.target && event.target.id !== 'heroes') {
-        event.target.classList.toggle('selected');
-    } else {
-        return;
-    }
-    let lastHero = document.getElementById('heroes').dataset['curhero'];
-    let heroIDs = '';
-    if(event.target.id === 'heroId_1000') {
-        let herosDivs = document.getElementById('heroes').childNodes;
-        for (let i = 0; i < herosDivs.length; i++) {
-            herosDivs[i].className = '';
-        }
-        heroIDs = '1000';
-        event.target.className = 'selected';
-    } else {
-        document.getElementById('heroId_1000').className = '';
-        let herosDivs = document.getElementById('heroes').childNodes;
-        let selectedH = [];
-        for (let i = 0; i < herosDivs.length; i++) {
-            if (herosDivs[i].className === 'selected') {
-                selectedH.push(herosDivs[i].id.substring(7));
-            }
-        }
-        heroIDs = selectedH.join('%2C');
-    }
-    if(lastHero && heroIDs !== lastHero) {
-        lastFound = {};
-    }
-    document.getElementById('heroes').dataset['curhero'] = heroIDs;
 }
 
 async function checkHero(event) {
@@ -490,9 +535,6 @@ async function buyHero(heroID, signature, owner) {
     }
     let responce = await fetch('https://data.thetanarena.com/thetan/v1/items/'+heroID+'?id='+heroID);
     let data = await responce.json();
-//        console.log(data);
-//        console.log(data['data'].tokenId);
-//        console.log(data['data']['sale']['price']/100000000);
     if(parseFloat(document.getElementById('myWBNB').innerHTML) < data['data']['sale']['price']/100000000) {
         alert("No enoght WBNB balance.");
         return;
@@ -515,8 +557,8 @@ let updateInterval;
 let leftInterval;
 let autoSecondsLeft = 100;
 function updateSwitch(event) {
-    if(!document.getElementById('heroes').dataset['curhero']) {
-        alert('Select hero first');
+    if(Filters['heroTypeIds'] === '') {
+        alert('Choose a hero(es).');
         return;
     }
     if(document.getElementById('autoStart').dataset['status'] === 'start') {
@@ -524,8 +566,8 @@ function updateSwitch(event) {
         document.getElementById('autoStart').dataset['status'] = 'stop';
         document.getElementById('autoStart').value = 'STOP';
         updateInterval = setInterval(loadHeroMarket, document.getElementById('autoDelay').value * 1000);
-        autoSecondsLeft = document.getElementById('autoDelay').value*1;
         leftInterval = setInterval(countLeft, 1000);
+        autoSecondsLeft = document.getElementById('autoDelay').value*1;
     }
     else if(document.getElementById('autoStart').dataset['status'] === 'stop') {
         document.getElementById('autoStart').style.backgroundColor = null;
@@ -536,6 +578,7 @@ function updateSwitch(event) {
         clearInterval(leftInterval);
     }
 }
+
 function countLeft() {
     document.getElementById('autoLeft').innerHTML = autoSecondsLeft--;
 }

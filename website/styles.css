@@ -7,8 +7,10 @@ body > div {
     padding: 3px 10px;
 }
 .heroes {
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
+    margin: 10px 0;
 }
 .heroes div {
     cursor: pointer;
@@ -21,13 +23,18 @@ body > div {
     line-height: 25px;
     text-align: center;
 }
-
+#FiltersDiv {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 1100px;
+}
 .heroes div.selected {
-    outline: 3px solid forestgreen;
+    outline: 4px solid forestgreen;
 }
 #updateButton {
     padding: 5px;
     width: 200px;
+    background-color: lightgreen;
 }
 #myWBNB, #HeroesNum {
     font-weight: bold;
