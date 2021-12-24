@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - легкий способ покупки героя на ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="../styles.css?v=3">
+    <link rel="stylesheet" href="../styles.css?v=5">
+    <link rel="icon" type="image/png" sizes="128x128" href="../favicon.png">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=5" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=7" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -21,19 +22,50 @@
 <DIV id="accStats" style="display: none;">
 Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles"></span> | Побед: <span id="accWins"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRate"></span>%
 </DIV>
-<BR>
-<DIV>Процент побед для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<BR><DIV><B>Процент побед</B> для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Фильтры:</B></DIV>
-<DIV>Минимум остаток игр: <INPUT id="GamesLeft" value="150" type="number" min="0" max="1000" size="4">. </DIV>
-<DIV id="heroes" class="heroes"></DIV>
-<DIV>Свой посковый запрос: <INPUT type="text" value="" id="customSearch" size=80 placeholder="https://marketplace.thetanarena.com/?levelMin=2&levelMax=11&heroTypeIds=8%2C15&skinIds=&battleMax=9007199254740991&battleMin=200&page=1"><BR>
-    <SMALL>Вы можете использовать <B>любые параметры</B> поиска на официальном маркете и вставить сюда все из <B>адресной строки</B>.</SMALL></DIV>
-<BR><DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
-<DIV id="autoUpdate">Авто-обновление (не ставьте ниже 10 секунд): <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
+<form id="filtersForm">
+    <DIV id="FiltersDiv">
+        <fieldset><legend>Редкость:</legend>
+            <label><input type="checkbox" name="FHeroRarity[]" value="0" /> Common</label><BR>
+            <label><input type="checkbox" name="FHeroRarity[]" value="1" /> Epic</label><BR>
+            <label><input type="checkbox" name="FHeroRarity[]" value="2" /> Legendary</label><BR>
+        </fieldset>
+        <fieldset><legend>Роль:</legend>
+            <label><input type="checkbox" name="FRole[]" value="0" /> Tank</label><BR>
+            <label><input type="checkbox" name="FRole[]" value="1" /> Marksman</label><BR>
+            <label><input type="checkbox" name="FRole[]" value="2" /> Assassin</label><BR>
+        </fieldset>
+        <fieldset><legend>Скин:</legend>
+            <label><input type="checkbox" name="FSkinRarity[]" value="0" /> Normal</label><BR>
+            <label><input type="checkbox" name="FSkinRarity[]" value="1" /> Rare</label><BR>
+            <label><input type="checkbox" name="FSkinRarity[]" value="2" /> Mythical</label><BR>
+        </fieldset>
+        <fieldset><legend>Мин. Уровень:</legend>
+            <P>Мин.:1, Макс.: 11</P>
+            <label>Уровень: <input id="fLevelMin" type="number" value="1" min="1" max="11" step="1" size="2"/></label><BR>
+        </fieldset>
+        <fieldset><legend>Мин. Тровеи:</legend>
+            <P>H = 1, SS = 10</P>
+            <label>Трофеи: <input id="fTrophyMin" type="number" value="1" min="1" max="10" step="1" size="2"/></label><BR>
+        </fieldset>
+        <fieldset><LEGEND>Остаток битв:</LEGEND>
+            <P>Остаток игр за THC</P>
+            <label>Мин. : <INPUT id="fBattleMin" value="150" type="number" min="0" max="1000" size="3"></label>
+        </fieldset>
+        <fieldset><LEGEND>Процент битв:</LEGEND>
+            <P>Остаток игр за THC</P>
+            <label>Мин. : <INPUT id="fBatPercentMin" value="0" type="number" min="0" max="100" size="3">%</label>
+        </fieldset>
+        <DIV id="heroes" class="heroes"></DIV>
+    </DIV>
+</form>
+<DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV id="autoUpdate">Авто-обновление: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <DIV><B>Как использовать?</B><BR>
-    * Выбрать героев, нажать <B>"Загрузить"</B> чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности (доход минус цена).<BR>
+    * Выбрать фильтры, нажать <B>"Загрузить"</B> чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности (доход минус цена).<BR>
     * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
     * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли купить лот (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
     * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
@@ -41,23 +73,23 @@
 </DIV><BR>
 <DIV><B>Как получить токен авторизации на маркете?</B><BR>
     * Перейдите на <A target="_blank" href="https://marketplace.thetanarena.com/">официальный маркет</A>.<BR>
-    * Перейдите в инвентарь, нажмите F12, в разделе "Console" вставьте <B>localStorage['theta/accessToken']</B> и нажмите [Enter].<BR>
+    * Перейдите в инвентарь, нажмите F12, во вкладке "Console" вставьте <B>localStorage['theta/accessToken']</B> и нажмите [Enter].<BR>
     * Скопируйте длинный код и вставьте в поле "Auth token с маркета" выше.<BR>
-    * После этого Вы сможете проверить и купить героя прямо на сайте (без авторизации маркет не отдает нужные данные).<BR>
+    * После этого Вы сможете проверить и купить героя прямо на сайте (без авторизации маркет не отдает нужные данные для покупки).<BR>
 </DIV><BR>
 <DIV><B>Возможности сервиса</B><BR>
-    * Легко проверить баланс WBNB, курсы обмена, а так же ваш WinRate.<BR>
-    * Легкая конвертация BNB в WBNB и обратно.<BR>
-    * Загрузка героев с официального маркета с автоматической сортировкой по прибыльности.<BR>
-    * Возможность сортировать по всем полям таблицы.<BR>
-    * Возможность быстро проверить лоты на возможность их купить (фильтровать лоты с ошибками).<BR>
-    * Возможность быстро купить героя прямо на странице.<BR>
-    * Расчет прибыльности каждого героя. Учитывается количество оставшихся боев, редкость героя, уровень прокачки и установленный Вами процент побед.<BR>
+    * Легко <B>проверить</B> баланс WBNB, курсы обмена, а так же ваш WinRate.<BR>
+    * Легкая <B>конвертация</B> между BNB и WBNB.<BR>
+    * Загрузка героев с официального маркета с автоматической сортировкой по <B>прибыльности</B>.<BR>
+    * Возможность <B>сортировать</B> по всем полям таблицы.<BR>
+    * Возможность быстро <B>проверить</B> лоты на возможность их купить (<B>фильтровать</B> лоты с ошибками).<BR>
+    * Возможность быстро <B>купить</B> героя прямо на странице.<BR>
+    * Расчет прибыльности каждого героя. Учитывается количество оставшихся боев, редкость героя, уровень прокачки и установленный Вами <B>процент побед</B>.<BR>
     * Возможность загрузить последние выставленные лоты по всем героям.<BR>
-    * Настроить минимум оставшихся игр и количество лотов, чтобы уменьшить время загрузки с Маркета.<BR>
-    * Функция автоматического обновления списка с подсвечиванием новых предложений.<BR>
+    * Настроить <B>минимум</B> оставшихся игр/процент и количество лотов, чтобы уменьшить время загрузки с Маркета.<BR>
+    * Функция <B>автоматического</B> обновления списка с <B>подсвечиванием</B> новых предложений.<BR>
 </DIV>
 <HR>
-<DIV>Сайт выложен на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHub</A>.</DIV>
+<DIV>Сайт <A href="https://ipfs.io/ipns/thetanmarket.live">выложен</A> на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHub</A>.</DIV>
 </body>
 </html>
