@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - легкий способ покупки героя на ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="../styles.css?v=5">
+    <link rel="stylesheet" href="../styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="../favicon.png">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=7" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=8" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
 <BR><DIV id="divConnect">
     <button id="webConnect"> Присоединиться к Web3 кошельку (MetaMask) </button>
 </DIV>
+<DIV><A href="../inventory.html"><B>ПРОДАЖА ГЕРОЕВ (Пока только English)</B></A></DIV><BR>
 <DIV>Адрес: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>Цена THC: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ График ]</A> </DIV>
 <DIV>Цена WBNB: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Балансы: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; Равернуть</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Обернуть &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
+<DIV>Балансы: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
 <DIV>У вас есть: <SPAN id="HeroesNum"></SPAN> героев</DIV>
 <DIV>Auth token с маркета: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
@@ -51,25 +52,31 @@
         </fieldset>
         <fieldset><LEGEND>Остаток битв:</LEGEND>
             <P>Остаток игр за THC</P>
-            <label>Мин. : <INPUT id="fBattleMin" value="150" type="number" min="0" max="1000" size="3"></label>
+            <label>Мин. : <INPUT id="fBattleMin" value="0" type="number" min="0" max="1000" size="3"></label>
         </fieldset>
         <fieldset><LEGEND>Процент битв:</LEGEND>
             <P>Остаток игр за THC</P>
-            <label>Мин. : <INPUT id="fBatPercentMin" value="0" type="number" min="0" max="100" size="3">%</label>
+            <label>Мин. : <INPUT id="fBatPercentMin" value="50" type="number" min="0" max="100" size="3">%</label>
         </fieldset>
         <DIV id="heroes" class="heroes"></DIV>
     </DIV>
 </form>
-<DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4"></DIV>
 <DIV id="autoUpdate">Авто-обновление: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
+<HR>
 <DIV><B>Как использовать?</B><BR>
     * Выбрать фильтры, нажать <B>"Загрузить"</B> чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности (доход минус цена).<BR>
     * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
     * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли купить лот (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
     * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
     * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
+    * При загрузке данных для <B>ОДНОГО</B> героя цена <B>WBNB/Battle</B> из четвертого ряда будет сохранена в памяти на 2 часа. При последующей загрузке<BR>
+    &nbsp;&nbsp;в разделе Latest цена будет <B>сверяться</B> и выгодные предложения (разница >5%) <B>подствечиваться золотым</B> цветом.<BR>
+    &nbsp;&nbsp;Так же эта цена будет предлагаться за выставления героя на продажу.<BR>
+    * При наведении мыши на колонку <B>$/Battle</B> выводится информация о <B>BNB/Battle</B>.<BR>
+    * При наведении мыши на колонку <B>ROI</B> (Возврат на вложения) выводится информация о <B>разнице</B> со средней ценой сохраненной ранее.
 </DIV><BR>
 <DIV><B>Как получить токен авторизации на маркете?</B><BR>
     * Перейдите на <A target="_blank" href="https://marketplace.thetanarena.com/">официальный маркет</A>.<BR>
@@ -90,6 +97,6 @@
     * Функция <B>автоматического</B> обновления списка с <B>подсвечиванием</B> новых предложений.<BR>
 </DIV>
 <HR>
-<DIV>Сайт <A href="https://ipfs.io/ipns/thetanmarket.live">выложен</A> на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHub</A>.</DIV>
+<DIV>Сайт <A href="https://ipfs.io/ipns/thetanmarket.live">выложен</A> на децентрализованной сети <A href="https://ipfs.io/" target="_blank">IPFS</A>. Проект с открытым исходным кодом. Прими участие в разработке через <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>.</DIV>
 </body>
 </html>
