@@ -28,10 +28,16 @@ body > div {
     flex-wrap: wrap;
     max-width: 1100px;
 }
+#bUWrap, #bWrap {
+    width: 90px;
+}
+td button {
+    width: 70px;
+}
 .heroes div.selected {
     outline: 4px solid forestgreen;
 }
-#updateButton {
+#updateButton, #historyButton {
     padding: 5px;
     width: 200px;
     background-color: lightgreen;
@@ -105,17 +111,18 @@ body > div {
     color: inherit;
     content: ' \025B4';
 }
-.marketTable tbody tr td:nth-child(3), .marketTable tbody tr td:nth-child(4), .marketTable tbody tr td:nth-child(5), .marketTable tbody tr td:nth-child(6), .marketTable tbody tr td:nth-child(7) {
+#HeroesTable.marketTable tbody td:nth-child(3), #HeroesTable.marketTable tbody td:nth-child(4), #HeroesTable.marketTable tbody td:nth-child(5),
+#HeroesTable.marketTable tbody td:nth-child(6), #HeroesTable.marketTable tbody td:nth-child(7) {
     text-align: right;
 }
-.marketTable tbody tr td:nth-child(4)::before, .marketTable tbody tr td:nth-child(5)::before, .marketTable tbody tr td:nth-child(6)::before {
+#HeroesTable.marketTable tbody td:nth-child(4)::before, #HeroesTable.marketTable tbody td:nth-child(5)::before, #HeroesTable.marketTable tbody td:nth-child(6)::before {
     content: "$";
 }
-.marketTable th:nth-child(8), .marketTable th:nth-child(9) {
-    pointer-events: none;
-}
-.marketTable tbody tr td:nth-child(7)::after {
+#HeroesTable.marketTable tbody td:nth-child(7)::after {
     content: "%";
+}
+#HeroesTable.marketTable th:nth-child(8), #HeroesTable.marketTable th:nth-child(9) {
+    pointer-events: none;
 }
 .marketTable tbody tr:last-of-type {
     border-bottom: 2px solid #009879;

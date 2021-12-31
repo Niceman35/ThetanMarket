@@ -5,16 +5,12 @@ const WBNBAbi = [
     "function balanceOf(address) public view returns (uint256)",
     "function deposit() public payable",
     "function withdraw(uint) public",
-    // An event triggered whenever anyone transfers to someone else
-    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 let WBNBContract;
 const MarkAddress = "0x54ac76f9afe0764e6a8Ed6c4179730E6c768F01C";
 const MarkAbi = [
     "function usedSignatures(bytes) public view returns (bool)",
     "function matchTransaction(address[3], uint256[3], bytes) external returns (bool)",
-    // An event triggered whenever anyone transfers to someone else
-    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 let MarkContract;
 const NFTAddress = "0x98eb46CbF76B19824105DfBCfa80EA8ED020c6f4";
@@ -22,83 +18,77 @@ const NFTAbi = [
     "function balanceOf(address) public view returns (uint256)",
     "function ownerOf(uint256) public view returns (address)",
     "function isLocked(uint256) public view returns (bool)",
-    // An event triggered whenever anyone transfers to someone else
-    "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
 ];
 let NFTContract;
+let MarkWithSigner;
 
 let Filters = {
-    'sort' : 'PriceAsc',
+    'sort' : 'PPB',
 };
 let myAddress = '';
 let thcPrice = 0;
 let bnbPrice = 0;
-document.addEventListener("DOMContentLoaded", function(event) {
-    document.addEventListener("click",function(b){function n(a,e){a.className=a.className.replace(u,"")+e}function p(a){return a.getAttribute("data-sort")||a.innerText}var u=/ dir-(u|d) /,c=/\bsortable\b/;b=b.target;if("TH"===b.nodeName)try{var q=b.parentNode,f=q.parentNode.parentNode;if(c.test(f.className)){var g,d=q.cells;for(c=0;c<d.length;c++)d[c]===b?g=c:n(d[c],"");d=" dir-d ";-1!==b.className.indexOf(" dir-d ")&&(d=" dir-u ");n(b,d);var h=f.tBodies[0],k=[].slice.call(h.rows,0),r=" dir-u "===d;k.sort(function(a, e){var l=p((r?a:e).cells[g]),m=p((r?e:a).cells[g]);return isNaN(l-m)?l.localeCompare(m):l-m});for(var t=h.cloneNode();k.length;)t.appendChild(k.splice(0,1)[0]);f.replaceChild(t,h)}}catch(a){}});
+const BoughtSound = new Audio("/bought.mp3");
+document.addEventListener("DOMContentLoaded", async function(event) {
+    document.getElementById('marketData').addEventListener("click",function(b){function n(a,e){a.className=a.className.replace(u,"")+e}function p(a){return a.getAttribute("data-sort")||a.innerText}var u=/ dir-(u|d) /,c=/\bsortable\b/;b=b.target;if("TH"===b.nodeName)try{var q=b.parentNode,f=q.parentNode.parentNode;if(c.test(f.className)){var g,d=q.cells;for(c=0;c<d.length;c++)d[c]===b?g=c:n(d[c],"");d=" dir-d ";-1!==b.className.indexOf(" dir-d ")&&(d=" dir-u ");n(b,d);var h=f.tBodies[0],k=[].slice.call(h.rows,0),r=" dir-u "===d;k.sort(function(a, e){var l=p((r?a:e).cells[g]),m=p((r?e:a).cells[g]);return isNaN(l-m)?l.localeCompare(m):l-m});for(var t=h.cloneNode();k.length;)t.appendChild(k.splice(0,1)[0]);f.replaceChild(t,h)}}catch(a){}});
+
     if (typeof window.ethereum !== "undefined") {
         provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        MarkContract = new ethers.Contract(MarkAddress, MarkAbi, provider);
+        WBNBContract = new ethers.Contract(WBNBAddress, WBNBAbi, provider);
+        NFTContract = new ethers.Contract(NFTAddress, NFTAbi, provider);
         provider.on("network", (newNetwork, oldNetwork) => {
             if (oldNetwork) {
                 window.location.reload();
             }
         });
         window.ethereum.autoRefreshOnNetworkChange = false;
-        MarkContract = new ethers.Contract(MarkAddress, MarkAbi, provider);
-        WBNBContract = new ethers.Contract(WBNBAddress, WBNBAbi, provider);
-        NFTContract = new ethers.Contract(NFTAddress, NFTAbi, provider);
         signer = provider.getSigner();
         try {
             signer.getAddress().then((result) => {
                 myAddress = result;
+                MarkWithSigner = MarkContract.connect(signer);
                 console.log('Address: '+myAddress);
-                document.getElementById('myAddress').innerHTML = myAddress;
-                WBNBContract.balanceOf(myAddress).then(balance => {
-                    document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(balance);
-                });
-                provider.getBalance(myAddress).then( balance => {
-                    document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(balance);
-                });
-                NFTContract.balanceOf(myAddress).then(balance => {
-                    document.getElementById('HeroesNum').innerHTML = parseInt(balance);
-                });
                 window.ethereum.on('accountsChanged', function (accounts) {
                     window.location.reload();
                 });
                 provider.getNetwork().then(chainId => {
                     if(chainId.chainId !== 56) {
                         document.getElementById('webConnect').innerHTML = 'Switch to Binance Smart Chain';
-//                        alert("Connect wallet to the Binance Smart chain");
                     } else {
                         document.getElementById('divConnect').style.display = 'none';
                     }
                 });
-
-
+                updateUserData();
             });
         } catch (e) {
             console.log(e);
+            alert('Can not connect to the  Web3 compatible wallet.');
         }
     } else {
         document.getElementById('webConnect').disabled = false;
-        alert('Not found Web3 compatible Ethereum wallet.');
+        alert('Not found Web3 compatible wallet.');
     }
-    document.getElementById('Barrier').value = localStorage['barrier'];
+
+    document.getElementById('Barrier').value = localStorage['Bearer'];
     document.getElementById('Barrier').addEventListener('change', async function () {
         console.log('Barrier changed');
         let barrier = (document.getElementById('Barrier').value).replace(/'/g,"");
-        let status = await loadAccStats(barrier);
+        localStorage.setItem('Bearer', barrier);
+        let status = await loadAccStats();
         if(status) {
-            alert('Token saved sucessfully');
-            localStorage.setItem('barrier', barrier);
             document.getElementById('Barrier').style.backgroundColor = 'lightgreen';
+            alert('Token saved sucessfully');
         }
     });
+
     document.getElementById('webConnect').addEventListener('click', ConnectBinance);
     document.getElementById('updateButton').addEventListener('click', loadHeroMarket);
     document.getElementById('bWrap').addEventListener('click', wrapBNB);
     document.getElementById('bUWrap').addEventListener('click', unWrapBNB);
     document.getElementById('autoStart').addEventListener('click', updateSwitch);
     document.getElementById('FiltersDiv').addEventListener('click', heroFilters);
+    setInterval(updateUserData, 5*60*1000); // 5 min
 
     fetch('https://data.thetanarena.com/thetan/v1/hero/feConfigs?configVer=-1')
         .then(response => response.json())
@@ -123,16 +113,52 @@ document.addEventListener("DOMContentLoaded", function(event) {
             div.id = 'heroId_1000';
             heroDiv.appendChild(div);
         });
+
+});
+
+async function updateUserData() {
+    document.getElementById('myAddress').innerHTML = myAddress;
+    provider.getBalance(myAddress).then((answer) => document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(answer));
+    WBNBContract.balanceOf(myAddress).then((answer) => document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(answer));
+    NFTContract.balanceOf(myAddress).then((answer) => document.getElementById('HeroesNum').innerHTML = answer);
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/1')
         .then(response => response.json())
-        .then(data => {thcPrice = data['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');});
+        .then(answer => {thcPrice = answer['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');});
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/32')
         .then(response => response.json())
-        .then(data => {bnbPrice = data['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');});
-    if(localStorage['barrier'] > '') {
-        loadAccStats(localStorage['barrier']);
+        .then(answer => {bnbPrice = answer['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');});
+    await loadAccStats();
+}
+
+async function loadAccStats() {
+    if(localStorage['Bearer'] > '') {
+        let response = await fetch("https://data.thetanarena.com/thetan/v1/profile",
+            {
+                method: 'GET',
+                withCredentials: true,
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + localStorage['Bearer'],
+                    'Content-Type': 'application/json'
+                })
+            });
+        let answer = await response.json();
+        if (answer['success']) {
+            document.getElementById('accStats').style.display = 'block';
+            document.getElementById('accUsername').innerHTML = answer['data']['username'];
+            document.getElementById('accBattles').innerHTML = answer['data']['playerStatistic']['battle'];
+            document.getElementById('accWins').innerHTML = answer['data']['playerStatistic']['victory'];
+            document.getElementById('accWinRate').innerHTML = (answer['data']['playerStatistic']['victory'] / answer['data']['playerStatistic']['battle'] * 100).toFixed(0);
+            return true;
+        } else {
+            alert('Wrong Auth Token provided');
+            localStorage.setItem('Bearer', '');
+            document.getElementById('Barrier').value = '';
+            return false;
+        }
+    } else {
+        return false;
     }
-});
+}
 
 async function ConnectBinance() {
     let chainsData = {
@@ -168,15 +194,11 @@ async function ConnectBinance() {
         try {
             myAddress = await provider.send("eth_requestAccounts", []);
             myAddress = myAddress[0];
-            document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(await WBNBContract.balanceOf(myAddress));
-            document.getElementById('myBNB').innerHTML  = ethers.utils.formatEther(await provider.getBalance(myAddress));
-            document.getElementById('HeroesNum').innerHTML = await NFTContract.balanceOf(myAddress);
             window.ethereum.on('accountsChanged', function (accounts) {
                 window.location.reload();
             });
+            updateBallances();
             document.getElementById('divConnect').style.display = 'none';
-            document.getElementById('myAddress').innerHTML = myAddress;
-
         } catch (e) {
             document.getElementById('webConnect').disabled = false;
             alert("Can not connect to Web3 wallet (MetaMask)");
@@ -240,32 +262,6 @@ function heroFilters(event) {
         delete Filters['skinRarity'];
 }
 
-async function loadAccStats(barrier) {
-    let responce = await fetch("https://data.thetanarena.com/thetan/v1/profile",
-        {
-            method: 'GET',
-            withCredentials: true,
-            headers: new Headers({
-                'Authorization': 'Bearer ' + barrier,
-                'Content-Type': 'application/json'
-            })
-        });
-    let data = await responce.json();
-    if(data['success']) {
-        document.getElementById('accStats').style.display = 'block';
-        document.getElementById('accUsername').innerHTML = data['data']['username'];
-        document.getElementById('accBattles').innerHTML = data['data']['playerStatistic']['battle'];
-        document.getElementById('accWins').innerHTML = data['data']['playerStatistic']['victory'];
-        document.getElementById('accWinRate').innerHTML = (data['data']['playerStatistic']['victory'] / data['data']['playerStatistic']['battle'] * 100).toFixed(0);
-        return true;
-    } else {
-        alert('Wrong Auth Token provided');
-        localStorage.setItem('barrier','');
-        document.getElementById('Barrier').value = '';
-        return false;
-    }
-}
-
 let lastFound = {};
 
 function getSearchURL() {
@@ -312,23 +308,32 @@ async function loadHeroMarket(event) {
     autoSecondsLeft = document.getElementById('autoDelay').value*1;
     let markettext = [];
     let searchURL = getSearchURL();
-    console.log(searchURL);
+
     let load = document.getElementById('Load').value;
-    if(Filters['heroTypeIds'] === '1000') load = 50;
+    let size = 50;
+    if(Filters['heroTypeIds'] === '1000') {
+        load = 20;
+        size = 20;
+    }
+    let requests = [];
     for(let i = 0; i <= Math.floor(load/51); i++) {
-        let loadURL = searchURL + '&from=' + i * 50 + '&size=50';
-        // if (heroIDs === '1000')
-        //     loadURL = 'https://data.thetanarena.com/thetan/v1/nif/search?sort=Latest&battleMin=' + gamesLeft + '&from=0&size=50';
-        let responce = await fetch(loadURL);
-        let data = await responce.json();
-        if(!data["data"])
-            break;
+        let loadURL = searchURL + '&from=' + i * 50 + '&size=' + size;
+        requests.push(fetch(loadURL))
+    }
+    const responses  = await Promise.all(requests);
+    const datas = await Promise.all(responses.map(r => r.json()));
+
+    for(let i = 0; i < datas.length; i++) {
+        const data = datas[i];
+        if(data["data"] == null)
+            continue;
+        let LevelBonus = {
+            0: [0, 0.006, 0.01, 0.01, 0.02],
+            1: [0, 0.117, 0.20, 0.27, 0.35],
+            2: [0, 0.750, 1.25, 1.75, 2.25, 2.75]
+        };
+        let lowerWallet = myAddress.toLowerCase();
         data["data"].forEach(function (item) {
-            let LevelBonus = {
-                0: [0, 0.006, 0.01, 0.01, 0.02],
-                1: [0, 0.117, 0.20, 0.27, 0.35],
-                2: [0, 0.750, 1.25, 1.75, 2.25, 2.75]
-            };
             let reward = 9.25;
             if(item.heroRarity === 1) {
                 reward = 12.5;
@@ -342,9 +347,13 @@ async function loadHeroMarket(event) {
             let USDPrice = (item.price / 100000000 * bnbPrice);
             let profit = ((item.battleCap * loseRate * 1 + item.battleCap * winRate * reward) * thcPrice) - USDPrice;
             let percent = Math.round((profit / USDPrice) * 100);
+            let owner = 0;
+            if(item.ownerAddress === lowerWallet)
+                owner = 1;
             if(!localStorage[item.id]) {
                 markettext.push({
                     'name': item.name,
+                    'nameid': item.heroTypeId,
                     'skin': item.skinName,
                     'level': item.level,
                     'trophy': item.trophyClass,
@@ -356,17 +365,14 @@ async function loadHeroMarket(event) {
                     'battlesMax': item.battleCapMax,
                     'heroR': item.heroRarity,
                     'skinR': item.skinRarity,
-                    'id': item.id
+                    'id': item.id,
+                    'owner' : owner
                 });
             }
         });
         document.getElementById('MintStatus').innerHTML = 'Load page: ' +i;
-        if(data["data"].length < 50)
-            break;
     }
-//        markettext.sort((a, b) => parseFloat(b.profit) - parseFloat(a.profit));
     markettext.sort((a, b) => parseFloat(b.percent) - parseFloat(a.percent));
-
     createTable(markettext);
 }
 
@@ -382,8 +388,17 @@ function createTable(markettext) {
     let SkinR = ['Normal', 'Rare', 'Mythical'];
     let trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
     let headers = ["Name (Skin)", "Left/Max/Used", "Price BNB", "Price $", "$/Battle", "Profit $", "ROI %", 'Link', 'Check'];
+
+    if(!Filters['heroTypeIds'].includes('%2C') && Filters['heroTypeIds'] !== '1000') {
+        let iteminfo = markettext[3];
+        let PPB = Math.round(iteminfo.price * 100000000 / iteminfo.battles);
+        localStorage.setItem("rPrice_" + iteminfo.nameid, PPB + '_' + Date.now());
+        document.getElementById('MintStatus').innerHTML = 'Saved an average price for the <B>'+ iteminfo.name +'</B>. Set to '+ (PPB/100000000).toFixed(6) +' BNB/B, <B>'+ (PPB*bnbPrice/100000000).toFixed(3) +'</B> USD/B';
+    }
+
     let table = document.createElement("TABLE");  //makes a table element for the page
     table.className = 'marketTable sortable';
+    table.id = 'HeroesTable';
     table.addEventListener('click', checkHero);
     let heroSwitched = false;
     if(Object.keys(lastFound).length === 0) {
@@ -395,18 +410,38 @@ function createTable(markettext) {
         let colorUsed = '';
         if(percentUsed < 10) colorUsed = '" style="color:green';
         if(percentUsed > 70) colorUsed = '" style="color:red';
+        let profitRatio = 0;
+        if(localStorage['rPrice_' + markettext[i].nameid]) {
+            let avgPrice = localStorage['rPrice_' + markettext[i].nameid].split('_');
+            if (Date.now() < avgPrice[1] + 60 * 60 * 2) {
+                let thisPrice = Math.round(markettext[i].price * 100000000 / markettext[i].battles);
+                profitRatio = avgPrice[0] / thisPrice;
+                if (profitRatio > 1.05) {
+                    console.log(thisPrice + ' ' + avgPrice[0] + ' ' + profitRatio);
+                    row.style.backgroundColor = '#f8d218';
+                    if (profitRatio > 1.1) {
+                        row.style.backgroundColor = "#bdf610";
+                    }
+                }
+            }
+        }
         if(!heroSwitched && !lastFound[markettext[i].id]) {
             row.style.backgroundColor = 'lightgreen';
         }
+        if(markettext[i].owner) {
+            row.style.backgroundColor = 'burlywood';
+        }
         row.insertCell(0).innerHTML = '<span title="'+ HeroR[markettext[i].heroR] +'" class="'+ HeroR[markettext[i].heroR] +'">'+ markettext[i].name +'</span> (<span title="'+SkinR[markettext[i].skinR]+'" class="'+ SkinR[markettext[i].skinR] +'">'+ markettext[i].skin +'</span>) ['+ markettext[i].level +'] ('+ trophy[markettext[i].trophy] +')';
         row.insertCell(1).outerHTML = '<TD data-sort="'+ markettext[i].battles + colorUsed +'"><B>'+ markettext[i].battles +'</B>&nbsp;/&nbsp;'+ markettext[i].battlesMax +'&nbsp;/&nbsp;'+ (markettext[i].battlesMax - markettext[i].battles) +'&nbsp;('+ percentUsed.toFixed(0) +'%)</TD>';
-        row.insertCell(2).innerHTML = (markettext[i].price).toFixed(4);
+        row.insertCell(2).innerHTML = (markettext[i].price).toFixed(3);
         row.insertCell(3).innerHTML = (markettext[i].price*bnbPrice).toFixed(2);
-        row.insertCell(4).innerHTML = ((markettext[i].price*bnbPrice)/markettext[i].battles).toFixed(2);
+        row.insertCell(4).outerHTML = '<TD title="'+ (markettext[i].price/markettext[i].battles).toFixed(6) +' WBNB">'+ ((markettext[i].price*bnbPrice)/markettext[i].battles).toFixed(2) +'</TD>';
         row.insertCell(5).innerHTML = '<B>' + (markettext[i].profit).toFixed(2) + '</B>';
-        row.insertCell(6).innerHTML = (markettext[i].percent).toFixed(0);
+        row.insertCell(6).outerHTML = '<TD title="'+ (profitRatio*100).toFixed(0) +'%">'+ (markettext[i].percent).toFixed(0) +'</TD>';
         row.insertCell(7).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].refID + '" target="_blank">Market link</A>';
-        row.insertCell(8).innerHTML = '<BUTTON data-status = "check" id="'+markettext[i].id+'">Check</BUTTON>';
+        if(!markettext[i].owner) {
+            row.insertCell(8).innerHTML = '<BUTTON data-status = "check" id="' + markettext[i].id + '">Check</BUTTON>';
+        }
         lastFound[markettext[i].id] = true;
     }
 
@@ -415,14 +450,13 @@ function createTable(markettext) {
     for(let i = 0; i < headers.length; i++) {
         headerRow.insertCell(i).outerHTML = '<TH>' + headers[i] + '</TH>';
     }
-
     marketDiv.appendChild(table);
 }
 
 async function checkHero(event) {
     let heroID = event.target.id;
     if(event.target.dataset['status'] === 'buy') {
-        buyHero(heroID, event.target.dataset['sign'], event.target.dataset['owner']);
+        buyHero(heroID, event.target.dataset['sign']);
         return;
     }
     if(event.target.dataset['status'] === 'ignore') {
@@ -432,127 +466,150 @@ async function checkHero(event) {
     }
     if(event.target.dataset['status'] !== 'check')
         return;
-    let responce = await fetch('https://data.thetanarena.com/thetan/v1/items/'+heroID+'?id='+heroID);
-    let data = await responce.json();
-//        console.log(data);
-    console.log('TokenID: ' + data['data'].tokenId);
-    if(!localStorage['barrier']) {
-        alert('You need to add the Auth Token to check the hero automatically');
+
+    document.getElementById('autoStart').style.backgroundColor = null;
+    document.getElementById('autoStart').dataset['status'] = 'start';
+    document.getElementById('autoStart').value = 'START';
+    document.getElementById('autoLeft').innerHTML = '';
+    clearInterval(updateInterval);
+    clearInterval(leftInterval);
+    event.target.innerHTML = "⏳";
+    event.target.disabled = true;
+
+    if(!localStorage['Bearer']) {
+        alert('You need to add the Auth Token to check the hero automatically, or check manually on the market');
         setIgnore(event.target, 'No Auth token');
         return;
     }
-    if(data["data"]["sale"]) {
-        let marketOwner = data["data"].ownerAddress;
-        let responce = await fetch("https://data.thetanarena.com/thetan/v1/items/" + heroID + "/signed-signature?id=" + heroID,
-            {
-                method: 'GET',
-                withCredentials: true,
-                headers: new Headers({
-                    'Authorization': 'Bearer '+localStorage['barrier'],
-                    'Content-Type': 'application/json'
-                })
-            }
-        );
-        let signed = await responce.json();
-        console.log('Sign: ' + signed['data']);
-        if(!signed['data']) {
-            alert('Wrong AuthToken or can not connect to the market');
-            setIgnore(event.target, 'Wrong Auth token');
-            return;
-        }
-        let criteriaMessageHash = getMessageHash(
-            data['data'].nftContract,
-            data['data'].tokenId,
-            data['data']['sale']['paymentToken'].contractAddress,
-            data['data']['sale'].price + '0000000000',
-            data['data'].saltNonce
-        );
-        console.log('Crit: ' + criteriaMessageHash);
-        let recovered = '';
-        if(parseInt(signed['data'].substr(-2),16) > 26) {
-            recovered =  ethers.utils.verifyMessage(ethers.utils.arrayify(criteriaMessageHash), signed['data']);
-            console.log('Recover seller: ' + recovered);
-        }
-        if(recovered.toLowerCase() === marketOwner) {
-            if(myAddress > '') {
-                let chainId = await provider.getNetwork();
-                if(chainId.chainId !== 56) {
-                    alert("Connect wallet to the Binance Smart chain to check a hero");
-                    return;
-                }
-                let isLocked = await NFTContract.isLocked(data['data'].tokenId);
-                if(!isLocked) {
-                    let NFTowner = await NFTContract.ownerOf(data['data'].tokenId);
-                    console.log('NFT owner: ' + NFTowner);
-                    if (NFTowner.toLowerCase() === marketOwner) {
-                        let used = await MarkContract.usedSignatures(signed['data']);
-                        if (!used) {
-                            event.target.style.backgroundColor = 'lawngreen';
-                            event.target.dataset['sign'] = signed['data'];
-                            event.target.dataset['owner'] = recovered;
-                            event.target.dataset['status'] = 'buy';
-                            event.target.innerHTML = 'BUY';
-                        } else {
-                            setIgnore(event.target, 'Bought/cancelled already');
-                            console.log('Used signature');
-                        }
-                    } else {
-                        setIgnore(event.target, 'Bought already');
-                        console.log('Not NFT owner');
-                    }
-                } else {
+    if(myAddress === '') {
+        alert('You need connect you Wallet to Check and Buy the hero');
+        setIgnore(event.target, 'No Auth token');
+        return;
+    }
+    const response = await getHeroInfoWithSignature(heroID);
+    if(typeof response[1] === "string") {
+        alert('Wrong AuthToken or can not connect to the market');
+        setIgnore(event.target, 'Wrong Auth token');
+        return;
+    }
+
+    if(response[1]["data"] != null) {
+        let signature = response[1]["data"];
+        let info = response[0]['data'];
+        console.log('TokenID: ' + info.tokenId);
+        console.log('Sign: ' + signature);
+        try {
+            if(parseInt(signature.substr(-2),16) < 26)
+                throw 'Wrong signature';
+            const gasCost = await MarkWithSigner.estimateGas.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, info['sale'].price + '0000000000', info.saltNonce], signature);
+            console.log(gasCost.toString());
+            event.target.disabled = false;
+            event.target.style.backgroundColor = 'lawngreen';
+            event.target.dataset['sign'] = signature;
+            event.target.dataset['status'] = 'buy';
+            event.target.innerHTML = 'BUY';
+        } catch (error) {
+            let errMsg;
+            if(error['data'])
+                errMsg = error['data']['message'];
+            else
+                errMsg = error.toString();
+//            console.log(errMsg);
+            let message = 'Wrong signature';
+            if (errMsg.includes('transfer locked token'))
+                message = 'Locked token';
+            if (errMsg.includes('signature used') || errMsg.includes('seller is not owner'))
+                message = 'Sold already';
+            if (errMsg.includes('have enough token')) {
+                let isLocked = await NFTContract.isLocked(info.tokenId);
+                if(isLocked) {
                     setIgnore(event.target, 'NFT is locked');
-                    console.log('NFT is locked');
+                } else {
+                    event.target.disabled = false;
+                    event.target.style.backgroundColor = 'lawngreen';
+                    event.target.dataset['sign'] = signature;
+                    event.target.dataset['status'] = 'buy';
+                    event.target.innerHTML = 'BUY';
+                    alert('Low WBNB Balance');
                 }
             } else {
-                alert('Connect with Web3 wallet to quick BUY the hero');
-                event.target.style.backgroundColor = 'lawngreen';
-                event.target.dataset['status'] = 'ok';
-                event.target.innerHTML = 'Ok';
+                setIgnore(event.target, message);
             }
-        } else {
-            setIgnore(event.target, 'Wrong signature');
-            console.log('Wrong signature');
         }
     } else {
-        setIgnore(event.target, 'Not for sale');
-        console.log('Not for sale');
+        setIgnore(event.target, 'Sold already');
     }
 }
 
 function setIgnore(div, reason) {
+    div.disabled = false;
     div.style.backgroundColor = 'orangered';
     div.title = reason;
     div.dataset['status'] = 'ignore';
     div.innerHTML = 'Ignore';
 }
 
-async function buyHero(heroID, signature, owner) {
-    let chainId = await provider.getNetwork();
-    if(chainId.chainId !== 56) {
-        alert("Connect wallet to the Binance Smart chain");
-        return;
-    }
-    let responce = await fetch('https://data.thetanarena.com/thetan/v1/items/'+heroID+'?id='+heroID);
-    let data = await responce.json();
-    if(parseFloat(document.getElementById('myWBNB').innerHTML) < data['data']['sale']['price']/100000000) {
-        alert("No enoght WBNB balance.");
-        return;
-    }
-    let info = data['data'];
-    const MarkWithSigner = MarkContract.connect(signer);
-    try {
-        const tx = await MarkWithSigner.matchTransaction([owner, info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, info['sale'].price + '0000000000', info.saltNonce], signature, { gasPrice: 10000000000 });
+async function buyHero(heroID, signature) {
+    let myButton = document.getElementById(heroID);
+    myButton.innerHTML = "⏳";
+    myButton.disabled = true;
 
-        const receipt = await tx.wait();
-        console.log(receipt);
-        if(receipt.status === 1) {
-            document.getElementById('MintStatus').innerHTML = '<B>Bought sucessfully!</B>';
+    let response = [];
+    let data = await fetch('https://data.thetanarena.com/thetan/v1/items/'+ heroID +'?id='+ heroID);
+    response[0] = await data.json();
+    response[1] = {'data' : signature, 'success': true};
+
+//    console.log(response);
+    if(typeof response[1] === "string") {
+        alert('Wrong AuthToken or can not connect to the market');
+        myButton.innerHTML = "❌";
+        return;
+    }
+
+    if(response[1]['data'] != null && response[0]['data']['sale']) {
+        let signature = response[1]["data"];
+        let info = response[0]['data'];
+        if(parseFloat(document.getElementById('myWBNB').innerHTML) < info['sale'].price / 100000000) {
+            alert("No enoght WBNB balance.");
+            myButton.innerHTML = "❌";
+            return;
         }
-    } catch (e) {
-        document.getElementById('MintStatus').innerHTML = '<I>Error: '+e.message+'</I>';
+        try {
+            const tx = await MarkWithSigner.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, info['sale'].price + '0000000000', info.saltNonce], signature, { gasPrice: 6000000000 });
+            const receipt = await tx.wait();
+            console.log(receipt);
+            if(receipt.status === 1) {
+                myButton.innerHTML = "✔";
+                document.getElementById('MintStatus').innerHTML = '<B>Bought sucessfully!</B>';
+                BoughtSound.play();
+            }
+        } catch (e) {
+            let message = 'Error while executing transaction.';
+            if(e['data'])
+                message = e['data'].message;
+            document.getElementById('MintStatus').innerHTML = '<I>Error: '+message+'</I>';
+            myButton.innerHTML = "❌";
+        }
+
     }
 }
+
+async function getHeroInfoWithSignature(heroID) {
+    const data  = await Promise.all([
+        fetch('https://data.thetanarena.com/thetan/v1/items/'+ heroID +'?id='+ heroID),
+        fetch("https://data.thetanarena.com/thetan/v1/items/"+ heroID +"/signed-signature?id="+ heroID,
+            {
+                method: 'GET',
+                withCredentials: true,
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + localStorage['Bearer'],
+                    'Content-Type': 'application/json'
+                })
+            })
+    ]);
+    return response = await Promise.all(data.map(r => r.json()));
+}
+
 let updateInterval;
 let leftInterval;
 let autoSecondsLeft = 100;
@@ -584,35 +641,36 @@ function countLeft() {
 }
 
 async function wrapBNB() {
-    let chainId = await provider.getNetwork();
-    if(chainId.chainId !== 56) {
-        alert("Connect wallet to the Binance Smart chain");
-        return;
-    }
+    let myButton = document.getElementById('bWrap');
+    myButton.innerHTML = "⏳";
+    myButton.disabled = true;
+
     const WBNBWithSigner = WBNBContract.connect(signer);
     let amount = ethers.utils.parseEther(document.getElementById('wrapAmount').value);
     try {
         const tx = await WBNBWithSigner.deposit({value: amount});
-
         const receipt = await tx.wait();
         console.log(receipt);
         if(receipt.status === 1) {
+            myButton.innerHTML = "Wrap &gt;";
+            myButton.disabled = false;
             document.getElementById('MintStatus').innerHTML = '<B>Wrapped sucessfully!</B>';
             document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(await WBNBContract.balanceOf(myAddress));
             document.getElementById('myBNB').innerHTML  = ethers.utils.formatEther(await provider.getBalance(myAddress));
         }
     } catch (e) {
         document.getElementById('MintStatus').innerHTML = '<I>Error: '+e.message+'</I>';
+        myButton.innerHTML = "Wrap &gt;";
+        myButton.disabled = false;
     }
 
 }
 
 async function unWrapBNB() {
-    let chainId = await provider.getNetwork();
-    if(chainId.chainId !== 56) {
-        alert("Connect wallet to the Binance Smart chain");
-        return;
-    }
+    let myButton = document.getElementById('bUWrap');
+    myButton.innerHTML = "⏳";
+    myButton.disabled = true;
+
     const WBNBWithSigner = WBNBContract.connect(signer);
     let amount = ethers.utils.parseEther(document.getElementById('wrapAmount').value);
     try {
@@ -621,12 +679,16 @@ async function unWrapBNB() {
         const receipt = await tx.wait();
         console.log(receipt);
         if(receipt.status === 1) {
+            myButton.innerHTML = "&lt; UnWrap";
+            myButton.disabled = false;
             document.getElementById('MintStatus').innerHTML = '<B>UnWrapped sucessfully!</B>';
             document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(await WBNBContract.balanceOf(myAddress));
             document.getElementById('myBNB').innerHTML  = ethers.utils.formatEther(await provider.getBalance(myAddress));
         }
     } catch (e) {
         document.getElementById('MintStatus').innerHTML = '<I>Error: '+e.message+'</I>';
+        myButton.innerHTML = "Wrap &gt;";
+        myButton.disabled = false;
     }
 
 }

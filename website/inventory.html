@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Inventory</title>
+    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
+    <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
+    <script src="sellhero.js?v=1" type="application/javascript"></script>
+    <STYLE>
+        #InventoryTable.marketTable tbody td:nth-child(3), #InventoryTable.marketTable tbody td:nth-child(4),
+        #InventoryTable.marketTable tbody td:nth-child(5), #InventoryTable.marketTable tbody td:nth-child(6) {
+            text-align: right;
+        }
+
+        #InventoryTable.marketTable tbody td:nth-child(4)::before,
+        #InventoryTable.marketTable tbody td:nth-child(5)::before,
+        #InventoryTable.marketTable tbody td:nth-child(11)::before {
+            content: "$";
+        }
+        #InventoryTable.marketTable tbody td:nth-child(3)::after {
+            content: " WBNB";
+        }
+        #InventoryTable.marketTable tbody tr td:nth-child(6)::after {
+            content: "%";
+        }
+        #InventoryTable td button {
+            width: 130px;
+        }
+        #InventoryTable.marketTable th:nth-child(8), #InventoryTable.marketTable th:nth-child(9),
+        #InventoryTable.marketTable th:nth-child(10), #InventoryTable.marketTable th:nth-child(11), #InventoryTable.marketTable th:nth-child(11) {
+            pointer-events: none;
+        }
+
+
+        #HistoryTable.marketTable tbody td:nth-child(3),#HistoryTable.marketTable tbody td:nth-child(4), #HistoryTable.marketTable tbody td:nth-child(5) {
+            text-align: right;
+        }
+
+        #HistoryTable.marketTable tbody td:nth-child(3)::after,
+        #HistoryTable.marketTable tbody td:nth-child(4)::after {
+            content: " WBNB";
+        }
+        #HistoryTable.marketTable tbody td:nth-child(5)::before {
+            content: "$";
+        }
+        #HistoryTable button.parseMetadata {
+            width: 150px;
+        }
+        #HeroesTable.marketTable th:nth-child(6), #HeroesTable.marketTable th:nth-child(7), #HeroesTable.marketTable th:nth-child(8) {
+            pointer-events: none;
+        }
+    </STYLE>
+</head>
+<body>
+<DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
+<BR><DIV id="divConnect">
+    <button id="webConnect"> Connect to Web3 wallet (MetaMask) </button>
+</DIV>
+<DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
+<DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
+<DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB,  <SPAN id="myWBNB"></SPAN> WBNB</DIV>
+<DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
+<DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
+<DIV id="accStats" style="display: none;">
+    Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>%
+</DIV>
+<BR><DIV><B>Win rate</B> for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
+<BR>
+<DIV><BUTTON id="updateButton">Load/Update Inventory</BUTTON></DIV>
+<DIV id="MintStatus"></DIV>
+<DIV id="marketData"></DIV>
+
+<DIV><BUTTON id="historyButton">Load/Update History</BUTTON></DIV>
+<DIV id="historyData"></DIV><BR><BR>
+<HR>
+<DIV><B>How to use?</B><BR>
+    * You can see your <B>owned</B> heroes on this page.<BR>
+    * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet to sell heroes.<BR>
+    * The price will be suggested to you, based on the <B>'average BNB/Battle price'</B> stored on the main page (this price is only actual for 8 hours).<BR>
+    * To save the 'average price' you should load a particular (needed) hero's deals on the <A href="index.html">main page</A>.<BR>
+    * To put a hero on the market, set the price (you can change any value) and click the "SELL" button. Sign your offer in the wallet and the hero will be added.<BR>
+    * To finish the sale, press the button "STOP SELLING".<BR>
+    * You can load your transaction history. This history will be loaded directly from the blockchain.<BR>
+    * If the skin name is not displayed, you can click the "Token ID" button and the skin name will be parsed from the blockchain.<BR>
+    * If you parse the skin from "BUY" operation, the purchase price will be saved and later used to calculate the profit for the "SELL" operation for this hero.<BR>
+<BR>
+<DIV><B>How to get the Auth token to check lots?</B><BR>
+    * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
+    * Go to your "inventory", click F12, in the "Console" tab paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
+    * Copy the long code and paste it into the "Market Auth token" field above.<BR>
+    * You will be able to <B>check and BUY</B> heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
+</DIV>
+<HR>
+<DIV><A href="https://ipfs.io/ipns/thetanmarket.live">Hosted</A> on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>
+</body>
+</html>

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <TITLE>ThetanMarket.LIVE - easiest way to buy a good hero in the ThetanArena Marketplace</TITLE>
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=7" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=8" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -14,6 +14,7 @@
     <button id="webConnect"> Connect to Web3 wallet (MetaMask) </button>
 </DIV>
 <DIV><A href="ru/index.html"><B>РУССКАЯ версия</B></A></DIV><BR>
+<DIV><A href="inventory.html"><B>SELL YOUR HEROES</B></A></DIV><BR>
 <DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
 <DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
@@ -52,16 +53,16 @@ Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span
     </fieldset>
     <fieldset><LEGEND>Battles left:</LEGEND>
         <P>THC games left</P>
-        <label>Min. : <INPUT id="fBattleMin" value="150" type="number" min="0" max="1000" size="3"></label>
+        <label>Min. : <INPUT id="fBattleMin" value="0" type="number" min="0" max="1000" size="3"></label>
     </fieldset>
     <fieldset><LEGEND>Percent left:</LEGEND>
         <P>THC games left</P>
-        <label>Min. : <INPUT id="fBatPercentMin" value="0" type="number" min="0" max="100" size="3">%</label>
+        <label>Min. : <INPUT id="fBatPercentMin" value="50" type="number" min="0" max="100" size="3">%</label>
     </fieldset>
     <DIV id="heroes" class="heroes"></DIV>
 </DIV>
 </form>
-<DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="200" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4"></DIV>
 <DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
@@ -72,12 +73,17 @@ Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span
     * Click the "<B>Check</B>" button to check if a lot is purchasable (if not, you can click the "Ignore" button to ignore that lot in future searches).<BR>
     * Click on the <B>"BUY"</B> button and confirm the transaction in the Metamask to buy a hero (it will appear in your market inventory in a few minutes).<BR>
     * You can use the tool without an Auth Token or Wallet connection (just use Market link).<BR>
-</DIV><BR>
+    * If you load data for <B>ONE</B> hero, the <B>USD/Battles</B> of the fourth line is stored for 2 hours. If you load data from the "Latest items" -<BR>
+    &nbsp;&nbsp;this value will be compared and very good offers (> 5% difference) will be <B>highlighted</B> with GOLD.<BR>
+    &nbsp;&nbsp;This WBNB/Battle value will be suggested to fast sell your heroes on the <B>SELL HERO</B> page also.<BR>
+    * If you move the mouse cursor to the <B>$/Battle</B> column, the <B>BNB/Battle</B> price will be displayed. <BR>
+    * If you move the mouse pointer to the <B>ROI</B> column you get the <B>difference</B> to the 'average price' in percent.</DIV>
+<BR>
 <DIV><B>How to get the Auth token to check lots?</B><BR>
     * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
     * Go to your "inventory", click F12, in the "Console" tab paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
     * Copy the long code and paste it into the "Market Auth token" field above.<BR>
-    * You will be able to check and BUY heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
+    * You will be able to <B>check and BUY</B> heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
 </DIV><BR>
 <DIV><B>Website Features</B><BR>
     * Easily <B>check</B> your WBNB balance, exchange rates and win rate.<BR>
