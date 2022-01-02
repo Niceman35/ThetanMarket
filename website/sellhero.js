@@ -187,12 +187,10 @@ async function loadHeroes() {
             })
         });
     let data = await responce.json();
-    console.log(data);
     let skinsInfo = data['data']['skinConfigs']['skinConfigs'];
     skinsInfo.forEach(skin => {
         skinsData[skin.id] = skin.name;
     });
-    console.log(skinsData);
     createTable(data['data']['heroes']);
     loadAccStats();
     object.innerHTML = 'Load/Update Inventory';
@@ -240,7 +238,6 @@ function createTable(markettext) {
         let BNBPrice = 0;
         if(markettext[i].lastPrice)
             BNBPrice = (markettext[i].lastPrice.value)/100000000;
-
 
         let skinName = '<span title="'+ HeroR[markettext[i].rarity] +'" class="'+ HeroR[markettext[i].rarity] +'">'+ markettext[i].heroInfo.name +'</span> (<span title="'+SkinR[markettext[i].skinRarity]+'" class="'+ SkinR[markettext[i].skinRarity] +'">'+ skinsData[markettext[i].skinId] +'</span>) ['+ markettext[i].level +'] ('+ trophy[hRank.trophyClass] +')';
         localStorage['token_'+markettext[i].tokenId] = JSON.stringify({

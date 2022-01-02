@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=8" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=9" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -22,7 +22,8 @@
 <DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
 <DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
-Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>%
+Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span> | Wins: <span id="accWins"></span> | WinRate: <span style="font-weight: bold;" id="accWinRate"></span>% <button id="saveStats">Save stats</button><BR>
+After the last save: Battles: <span id="accBattlesSave"></span> | Wins: <span id="accWinsSave"></span> | WinRate: <span style="font-weight: bold;" id="accWinRateSave"></span>%
 </DIV>
 <BR><DIV><B>Win rate</B> for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Filters:</B></DIV>
@@ -67,35 +68,42 @@ Username: <span id="accUsername"></span> | Battles: <span id="accBattles"></span
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <HR>
-<DIV><B>How to use?</B><BR>
-    * Choose Filters and <B>click "Load"</B> to load or update items from the official market, sorted by the profitability (earn minus cost).<BR>
-    * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet for <B>advanced</B> features.<BR>
-    * Click the "<B>Check</B>" button to check if a lot is purchasable (if not, you can click the "Ignore" button to ignore that lot in future searches).<BR>
-    * Click on the <B>"BUY"</B> button and confirm the transaction in the Metamask to buy a hero (it will appear in your market inventory in a few minutes).<BR>
-    * You can use the tool without an Auth Token or Wallet connection (just use Market link).<BR>
-    * If you load data for <B>ONE</B> hero, the <B>USD/Battles</B> of the fourth line is stored for 2 hours. If you load data from the "Latest items" -<BR>
-    &nbsp;&nbsp;this value will be compared and very good offers (> 5% difference) will be <B>highlighted</B> with GOLD.<BR>
-    &nbsp;&nbsp;This WBNB/Battle value will be suggested to fast sell your heroes on the <B>SELL HERO</B> page also.<BR>
-    * If you move the mouse cursor to the <B>$/Battle</B> column, the <B>BNB/Battle</B> price will be displayed. <BR>
-    * If you move the mouse pointer to the <B>ROI</B> column you get the <B>difference</B> to the 'average price' in percent.</DIV>
+<DIV>
+    <B>How to use.</B><BR>
+    * Choose <B>Filters</B> and click "<B>Load/Update</B>" to load items from the official market, sorted by <B>profitability</B> (revenue minus cost).<BR>
+    * Add <B>Auth Token</B> from official market and connect your <B>wallet</B> for advanced features.<BR>
+    * Click the "<B>Check</B>" button to check if an item is <B>buyable</B> (if not, you can click the "<B>Ignore</B>" button to ignore that item in future searches).<BR>
+    * Click the "<B>BUY</B>" button and confirm the transaction in the <B>Metamask</B> to buy a hero (it will appear in your market inventory in a few minutes).<BR>
+    * When you load data for <B>ONE</B> hero, the <B>USD/Battles</B> of the fourth row will be saved for 2 hours.<BR>
+    &nbsp;&nbsp;If you load data from the "Latest items" - this value will be <B>compared</B> and very good offers (> 5% difference) will be highlighted with <B>GOLD</B>.<BR>
+    &nbsp;&nbsp;This WBNB/Battle value is also <B>suggested</B> on the SELL HERO page as a <B>reasonable</B> price of your heroes.<BR>
+    * To load the data for <B>ONE</B> hero, you can hold down the <B>[Ctrl]</B> key and click on the hero icon.<BR>
+    * If you move the mouse cursor to the $/Battle column, the BNB/Battle price will be displayed.<BR>
+    * If you move the mouse pointer to the ROI column, you will get the difference to the 'average price' in percent.<BR>
+    * You can also use the tool <B>without</B> Auth Token or Wallet connection (just use the Market link).<BR>
+</DIV>
 <BR>
-<DIV><B>How to get the Auth token to check lots?</B><BR>
+<DIV>
+    <B>How do you get the Auth token to check lots?</B><BR>
     * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
-    * Go to your "inventory", click F12, in the "Console" tab paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
-    * Copy the long code and paste it into the "Market Auth token" field above.<BR>
-    * You will be able to <B>check and BUY</B> heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
-</DIV><BR>
-<DIV><B>Website Features</B><BR>
-    * Easily <B>check</B> your WBNB balance, exchange rates and win rate.<BR>
+    * Go to your "Inventory", click <B>[F12]</B>, go to the "<B>Console</B>" tab, paste <B>localStorage['theta/accessToken']</B> and click <B>[Enter]</B>.<BR>
+    * Copy and paste the long code into the "Market Auth token" field above.<BR>
+    * You will be able to <B>check and BUY</B> heroes directly from this page (without Auth.token it is impossible to get the data needed to send a transaction).<BR>
+</DIV>
+<BR>
+<DIV>
+    <B>Website features</B><BR>
+    * Easily check your WBNB balance, exchange rates and win rate.<BR>
+    * Check your current WinRate for your account and check WinRate from <B>saved</B> state.<BR>
     * Easily <B>convert</B> between BNB and WBNB.<BR>
     * Load items from the official market and sort by <B>profitability</B>.<BR>
-    * It is possible to <B>quick sort</B> by any collumn.
-    * It is possible to check if an item can be bought and <B>ignore</B> faulty items.<BR>
+    * You can load items using filters or most recently added items.<BR>
+    * It is possible to <B>sort</B> quickly by any column.<BR>
+    * It is possible to <B>check</B> if an item can be bought and ignore faulty items.<BR>
     * It is possible to <B>buy</B> heroes directly from this page.<BR>
-    * Profitability is calculated based on remaining fights, hero rarity, hero level and <B>WinRate</B> set.<BR>
-    * You can load lots using filters or most recently added lots.<BR>
-    * Set the <B>minimum number</B> of games remaining/percent games left and pages to load to optimize loading speed.<BR>
-    * <B>Automatic</B> refresh function with new items <B>highlight</B>.<BR>
+    * Profitability is calculated based on remaining fights, rarity of the hero, hero level and WinRate set.<BR>
+    * Set the minimum number of games/percentage of games remaining and number of items to load to optimize loading speed.<BR>
+    * Automatic refresh function <B>highlighting</B> new and "interesting" items.<BR>
 </DIV>
 <HR>
 <DIV><A href="https://ipfs.io/ipns/thetanmarket.live">Hosted</A> on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>

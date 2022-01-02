@@ -88,18 +88,23 @@ document.addEventListener("DOMContentLoaded", async function(event) {
     document.getElementById('bUWrap').addEventListener('click', unWrapBNB);
     document.getElementById('autoStart').addEventListener('click', updateSwitch);
     document.getElementById('FiltersDiv').addEventListener('click', heroFilters);
+    document.getElementById('saveStats').addEventListener('click', function () {
+        const battles = document.getElementById('accBattles').innerHTML;
+        const accWins = document.getElementById('accWins').innerHTML;
+        localStorage['SavedStats'] = battles +'|'+ accWins;
+    });
     setInterval(updateUserData, 5*60*1000); // 5 min
 
     fetch('https://data.thetanarena.com/thetan/v1/hero/feConfigs?configVer=-1')
         .then(response => response.json())
         .then(data => {
-            let heroesRarity = [0,0,0,1,0,0,0,1,0,0,2,1,2,2,1,0,1,1,1,2,1,2,2,0,0];
+            const heroesRarity = [0,0,0,1,0,0,0,1,0,0,2,1,2,2,1,0,1,1,1,2,1,2,2,0,0];
 
-            let heroDiv = document.getElementById('heroes');
+            const heroDiv = document.getElementById('heroes');
             for (var id in data["data"]["configs"]) {
                 if (!data["data"]["configs"].hasOwnProperty(id)) continue;
-                let item = data["data"]["configs"][id];
-                let div = document.createElement('div');
+                const item = data["data"]["configs"][id];
+                const div = document.createElement('div');
                 div.style.backgroundImage = "url('https://assets.thetanarena.com/" + item['imgSmallDefaultIcon']+"')";
                 div.title = item['name'];
                 div.id = 'heroId_' +id;
@@ -107,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async function(event) {
                 div.dataset['role'] = item['role'];
                 heroDiv.appendChild(div);
             }
-            let div = document.createElement('div');
+            const div = document.createElement('div');
             div.innerHTML = 'Latest\nitems';
             div.title = 'Load latest items for all heroes';
             div.id = 'heroId_1000';
@@ -132,7 +137,7 @@ async function updateUserData() {
 
 async function loadAccStats() {
     if(localStorage['Bearer'] > '') {
-        let response = await fetch("https://data.thetanarena.com/thetan/v1/profile",
+        const response = await fetch("https://data.thetanarena.com/thetan/v1/profile",
             {
                 method: 'GET',
                 withCredentials: true,
@@ -141,13 +146,21 @@ async function loadAccStats() {
                     'Content-Type': 'application/json'
                 })
             });
-        let answer = await response.json();
+        const answer = await response.json();
         if (answer['success']) {
+            const battles = parseInt(answer['data']['playerStatistic']['battle']);
+            const wins = parseInt(answer['data']['playerStatistic']['victory']);
             document.getElementById('accStats').style.display = 'block';
             document.getElementById('accUsername').innerHTML = answer['data']['username'];
-            document.getElementById('accBattles').innerHTML = answer['data']['playerStatistic']['battle'];
-            document.getElementById('accWins').innerHTML = answer['data']['playerStatistic']['victory'];
-            document.getElementById('accWinRate').innerHTML = (answer['data']['playerStatistic']['victory'] / answer['data']['playerStatistic']['battle'] * 100).toFixed(0);
+            document.getElementById('accBattles').innerHTML = battles;
+            document.getElementById('accWins').innerHTML = wins;
+            document.getElementById('accWinRate').innerHTML = (wins / battles * 100).toFixed(0);
+            if(localStorage['SavedStats'] > '') {
+                const SavedData = localStorage['SavedStats'].split('|');
+                document.getElementById('accBattlesSave').innerHTML = battles - SavedData[0];
+                document.getElementById('accWinsSave').innerHTML = wins - SavedData[1];
+                document.getElementById('accWinRateSave').innerHTML = ((wins - SavedData[1]) / (battles - SavedData[0]) * 100).toFixed(0);
+            }
             return true;
         } else {
             alert('Wrong Auth Token provided');
@@ -161,7 +174,7 @@ async function loadAccStats() {
 }
 
 async function ConnectBinance() {
-    let chainsData = {
+    const chainsData = {
         chainId: '0x38',
         chainName: "Binance Smart Chain Mainnet",
         nativeCurrency: {
@@ -174,7 +187,7 @@ async function ConnectBinance() {
     };
     if (typeof window.ethereum !== "undefined") {
         document.getElementById('webConnect').disabled = true;
-        let chainId = await provider.getNetwork();
+        const chainId = await provider.getNetwork();
         if(chainId.chainId !== 56) {
             try {
                 await provider.send('wallet_switchEthereumChain',
@@ -210,12 +223,12 @@ async function ConnectBinance() {
 }
 
 function heroFilters(event) {
-    let fRarity = [].filter.call(document.forms['filtersForm'].elements['FHeroRarity[]'], (c) => c.checked).map(c => c.value);
-    let fRole = [].filter.call(document.forms['filtersForm'].elements['FRole[]'], (c) => c.checked).map(c => c.value);
-    let fSkins = [].filter.call(document.forms['filtersForm'].elements['FSkinRarity[]'], (c) => c.checked).map(c => c.value);
+    const fRarity = [].filter.call(document.forms['filtersForm'].elements['FHeroRarity[]'], (c) => c.checked).map(c => c.value);
+    const fRole = [].filter.call(document.forms['filtersForm'].elements['FRole[]'], (c) => c.checked).map(c => c.value);
+    const fSkins = [].filter.call(document.forms['filtersForm'].elements['FSkinRarity[]'], (c) => c.checked).map(c => c.value);
 
     if(event.target.name === 'FHeroRarity[]' || event.target.name === 'FRole[]') {
-        let herosDivs = document.getElementById('heroes').childNodes;
+        const herosDivs = document.getElementById('heroes').childNodes;
         for (let i = 0; i < herosDivs.length; i++) {
             let selected = 0;
             if (fRarity.length && fRole.length) {
@@ -241,25 +254,27 @@ function heroFilters(event) {
     }
 
     if(event.target.parentElement.id === 'heroes') {
-        let herosDivs = document.getElementById('heroes').childNodes;
-        if(event.target.id === 'heroId_1000') {
+        const herosDivs = document.getElementById('heroes').childNodes;
+        if(event.target.id === 'heroId_1000' || event.ctrlKey) {
             for (let i = 0; i < herosDivs.length; i++) {
                 herosDivs[i].className = '';
             }
-            document.getElementById('heroId_1000').className = 'selected';
+            document.getElementById(event.target.id).className = 'selected';
         } else {
             event.target.classList.toggle('selected');
             document.getElementById('heroId_1000').className = '';
         }
     }
 
-    let selectedH = [].filter.call(document.getElementById('heroes').childNodes, (c) => (c.className === 'selected')).map(c => c.id.substring(7));
+    const selectedH = [].filter.call(document.getElementById('heroes').childNodes, (c) => (c.className === 'selected')).map(c => c.id.substring(7));
 
     Filters['heroTypeIds'] = selectedH.join('%2C');
     if(fSkins.length > 0)
         Filters['skinRarity'] = fSkins.join('%2C');
     else
         delete Filters['skinRarity'];
+
+    if (event.ctrlKey) loadHeroMarket();
 }
 
 let lastFound = {};
@@ -290,7 +305,7 @@ function getSearchURL() {
     if (Filters['heroTypeIds'] === '1000') {
         newFilters = 'sort=Latest&battleMin='+ Filters['battleMin'] +'&batPercentMin='+ document.getElementById('fBatPercentMin').value;
     }
-    let lastFilters = document.getElementById('FiltersDiv').dataset['curhero'];
+    const lastFilters = document.getElementById('FiltersDiv').dataset['curhero'];
     if(lastFilters && newFilters !== lastFilters) {
         lastFound = {};
     }
@@ -307,7 +322,7 @@ async function loadHeroMarket(event) {
     document.getElementById('MintStatus').innerHTML = '<span>Loading...</span>';
     autoSecondsLeft = document.getElementById('autoDelay').value*1;
     let markettext = [];
-    let searchURL = getSearchURL();
+    const searchURL = getSearchURL();
 
     let load = document.getElementById('Load').value;
     let size = 50;
@@ -317,8 +332,7 @@ async function loadHeroMarket(event) {
     }
     let requests = [];
     for(let i = 0; i <= Math.floor(load/51); i++) {
-        let loadURL = searchURL + '&from=' + i * 50 + '&size=' + size;
-        requests.push(fetch(loadURL))
+        requests.push(fetch(searchURL + '&from=' + i * 50 + '&size=' + size));
     }
     const responses  = await Promise.all(requests);
     const datas = await Promise.all(responses.map(r => r.json()));
@@ -342,11 +356,11 @@ async function loadHeroMarket(event) {
                 reward = 29.55;
             }
             reward += LevelBonus[item.heroRarity][Math.floor((item.level-1)/2)];
-            let winRate = parseInt(document.getElementById('WinRate').value)/100;
-            let loseRate = 1 - winRate;
-            let USDPrice = (item.price / 100000000 * bnbPrice);
-            let profit = ((item.battleCap * loseRate * 1 + item.battleCap * winRate * reward) * thcPrice) - USDPrice;
-            let percent = Math.round((profit / USDPrice) * 100);
+            const winRate = parseInt(document.getElementById('WinRate').value)/100;
+            const loseRate = 1 - winRate;
+            const USDPrice = (item.price / 100000000 * bnbPrice);
+            const profit = ((item.battleCap * loseRate * 1 + item.battleCap * winRate * reward) * thcPrice) - USDPrice;
+            const percent = Math.round((profit / USDPrice) * 100);
             let owner = 0;
             if(item.ownerAddress === lowerWallet)
                 owner = 1;
@@ -378,20 +392,20 @@ async function loadHeroMarket(event) {
 
 function createTable(markettext) {
     document.getElementById('MintStatus').innerHTML = 'Updated';
-    let marketDiv = document.getElementById('marketData');
+    const marketDiv = document.getElementById('marketData');
     if(markettext.length === 0) {
         marketDiv.innerHTML = '<BR><DIV>Nothing found</DIV><BR>';
         return;
     }
     marketDiv.innerHTML = '';
-    let HeroR = ['Common', 'Epic', 'Legendary'];
-    let SkinR = ['Normal', 'Rare', 'Mythical'];
-    let trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
-    let headers = ["Name (Skin)", "Left/Max/Used", "Price BNB", "Price $", "$/Battle", "Profit $", "ROI %", 'Link', 'Check'];
+    const HeroR = ['Common', 'Epic', 'Legendary'];
+    const SkinR = ['Normal', 'Rare', 'Mythical'];
+    const trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
+    const headers = ["Name (Skin)", "Left/Max/Used", "Price BNB", "Price $", "$/Battle", "Profit $", "ROI %", 'Link', 'Check'];
 
     if(!Filters['heroTypeIds'].includes('%2C') && Filters['heroTypeIds'] !== '1000') {
-        let iteminfo = markettext[3];
-        let PPB = Math.round(iteminfo.price * 100000000 / iteminfo.battles);
+        const iteminfo = markettext[3];
+        const PPB = Math.round(iteminfo.price * 100000000 / iteminfo.battles);
         localStorage.setItem("rPrice_" + iteminfo.nameid, PPB + '_' + Date.now());
         document.getElementById('MintStatus').innerHTML = 'Saved an average price for the <B>'+ iteminfo.name +'</B>. Set to '+ (PPB/100000000).toFixed(6) +' BNB/B, <B>'+ (PPB*bnbPrice/100000000).toFixed(3) +'</B> USD/B';
     }
@@ -406,15 +420,21 @@ function createTable(markettext) {
     }
     for(let i = 0; i < markettext.length; i++) {
         let row = table.insertRow(i);
-        let percentUsed = (markettext[i].battlesMax - markettext[i].battles)*100/markettext[i].battlesMax;
+        const percentUsed = (markettext[i].battlesMax - markettext[i].battles)*100/markettext[i].battlesMax;
         let colorUsed = '';
         if(percentUsed < 10) colorUsed = '" style="color:green';
         if(percentUsed > 70) colorUsed = '" style="color:red';
         let profitRatio = 0;
+        if(!heroSwitched && !lastFound[markettext[i].id]) {
+            row.style.backgroundColor = 'lightgreen';
+        }
+        if(markettext[i].owner) {
+            row.style.backgroundColor = 'burlywood';
+        }
         if(localStorage['rPrice_' + markettext[i].nameid]) {
-            let avgPrice = localStorage['rPrice_' + markettext[i].nameid].split('_');
+            const avgPrice = localStorage['rPrice_' + markettext[i].nameid].split('_');
             if (Date.now() < avgPrice[1] + 60 * 60 * 2) {
-                let thisPrice = Math.round(markettext[i].price * 100000000 / markettext[i].battles);
+                const thisPrice = Math.round(markettext[i].price * 100000000 / markettext[i].battles);
                 profitRatio = avgPrice[0] / thisPrice;
                 if (profitRatio > 1.05) {
                     console.log(thisPrice + ' ' + avgPrice[0] + ' ' + profitRatio);
@@ -424,12 +444,6 @@ function createTable(markettext) {
                     }
                 }
             }
-        }
-        if(!heroSwitched && !lastFound[markettext[i].id]) {
-            row.style.backgroundColor = 'lightgreen';
-        }
-        if(markettext[i].owner) {
-            row.style.backgroundColor = 'burlywood';
         }
         row.insertCell(0).innerHTML = '<span title="'+ HeroR[markettext[i].heroR] +'" class="'+ HeroR[markettext[i].heroR] +'">'+ markettext[i].name +'</span> (<span title="'+SkinR[markettext[i].skinR]+'" class="'+ SkinR[markettext[i].skinR] +'">'+ markettext[i].skin +'</span>) ['+ markettext[i].level +'] ('+ trophy[markettext[i].trophy] +')';
         row.insertCell(1).outerHTML = '<TD data-sort="'+ markettext[i].battles + colorUsed +'"><B>'+ markettext[i].battles +'</B>&nbsp;/&nbsp;'+ markettext[i].battlesMax +'&nbsp;/&nbsp;'+ (markettext[i].battlesMax - markettext[i].battles) +'&nbsp;('+ percentUsed.toFixed(0) +'%)</TD>';
@@ -445,8 +459,8 @@ function createTable(markettext) {
         lastFound[markettext[i].id] = true;
     }
 
-    let header = table.createTHead();
-    let headerRow = header.insertRow(0);
+    const header = table.createTHead();
+    const headerRow = header.insertRow(0);
     for(let i = 0; i < headers.length; i++) {
         headerRow.insertCell(i).outerHTML = '<TH>' + headers[i] + '</TH>';
     }
@@ -454,7 +468,7 @@ function createTable(markettext) {
 }
 
 async function checkHero(event) {
-    let heroID = event.target.id;
+    const heroID = event.target.id;
     if(event.target.dataset['status'] === 'buy') {
         buyHero(heroID, event.target.dataset['sign']);
         return;
@@ -494,8 +508,8 @@ async function checkHero(event) {
     }
 
     if(response[1]["data"] != null) {
-        let signature = response[1]["data"];
-        let info = response[0]['data'];
+        const signature = response[1]["data"];
+        const info = response[0]['data'];
         console.log('TokenID: ' + info.tokenId);
         console.log('Sign: ' + signature);
         try {
@@ -555,7 +569,7 @@ async function buyHero(heroID, signature) {
     myButton.disabled = true;
 
     let response = [];
-    let data = await fetch('https://data.thetanarena.com/thetan/v1/items/'+ heroID +'?id='+ heroID);
+    const data = await fetch('https://data.thetanarena.com/thetan/v1/items/'+ heroID +'?id='+ heroID);
     response[0] = await data.json();
     response[1] = {'data' : signature, 'success': true};
 
@@ -567,8 +581,8 @@ async function buyHero(heroID, signature) {
     }
 
     if(response[1]['data'] != null && response[0]['data']['sale']) {
-        let signature = response[1]["data"];
-        let info = response[0]['data'];
+        const signature = response[1]["data"];
+        const info = response[0]['data'];
         if(parseFloat(document.getElementById('myWBNB').innerHTML) < info['sale'].price / 100000000) {
             alert("No enoght WBNB balance.");
             myButton.innerHTML = "❌";
@@ -582,6 +596,7 @@ async function buyHero(heroID, signature) {
                 myButton.innerHTML = "✔";
                 document.getElementById('MintStatus').innerHTML = '<B>Bought sucessfully!</B>';
                 BoughtSound.play();
+                updateUserData();
             }
         } catch (e) {
             let message = 'Error while executing transaction.';
@@ -641,12 +656,12 @@ function countLeft() {
 }
 
 async function wrapBNB() {
-    let myButton = document.getElementById('bWrap');
+    const myButton = document.getElementById('bWrap');
     myButton.innerHTML = "⏳";
     myButton.disabled = true;
 
     const WBNBWithSigner = WBNBContract.connect(signer);
-    let amount = ethers.utils.parseEther(document.getElementById('wrapAmount').value);
+    const amount = ethers.utils.parseEther(document.getElementById('wrapAmount').value);
     try {
         const tx = await WBNBWithSigner.deposit({value: amount});
         const receipt = await tx.wait();
@@ -691,8 +706,4 @@ async function unWrapBNB() {
         myButton.disabled = false;
     }
 
-}
-
-function getMessageHash(_nftAddress, _tokenId, _paymentErc20, _price, _saltNonce) {
-    return ethers.utils.solidityKeccak256(['address', 'uint256', 'address', 'uint256', 'uint256'], [ _nftAddress, _tokenId, _paymentErc20, _price, _saltNonce ]);
 }
