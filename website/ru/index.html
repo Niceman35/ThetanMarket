@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="../favicon.png">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=8" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=9" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -21,7 +21,8 @@
 <DIV>У вас есть: <SPAN id="HeroesNum"></SPAN> героев</DIV>
 <DIV>Auth token с маркета: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
-Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles"></span> | Побед: <span id="accWins"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRate"></span>%
+Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles"></span> | Побед: <span id="accWins"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRate"></span>% <button id="saveStats">Сохранить</button><BR>
+После последнего сохранения: Боев: <span id="accBattlesSave"></span> | Побед: <span id="accWinsSave"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRateSave"></span>%
 </DIV>
 <BR><DIV><B>Процент побед</B> для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Фильтры:</B></DIV>
@@ -75,6 +76,7 @@
     * При загрузке данных для <B>ОДНОГО</B> героя цена <B>WBNB/Battle</B> из четвертого ряда будет сохранена в памяти на 2 часа. При последующей загрузке<BR>
     &nbsp;&nbsp;в разделе Latest цена будет <B>сверяться</B> и выгодные предложения (разница >5%) <B>подствечиваться золотым</B> цветом.<BR>
     &nbsp;&nbsp;Так же эта цена будет предлагаться за выставления героя на продажу.<BR>
+    * Чтобы быстро загрузить данные для <B>одного</B> героя просто нажмите на него с зажатой кнопкой <B>[Ctrl]</B>.<BR>
     * При наведении мыши на колонку <B>$/Battle</B> выводится информация о <B>BNB/Battle</B>.<BR>
     * При наведении мыши на колонку <B>ROI</B> (Возврат на вложения) выводится информация о <B>разнице</B> со средней ценой сохраненной ранее.
 </DIV><BR>
