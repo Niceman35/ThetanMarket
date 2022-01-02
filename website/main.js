@@ -59,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async function(event) {
                         document.getElementById('divConnect').style.display = 'none';
                     }
                 });
-                updateUserData();
             });
         } catch (e) {
             console.log(e);
@@ -92,6 +91,8 @@ document.addEventListener("DOMContentLoaded", async function(event) {
         const battles = document.getElementById('accBattles').innerHTML;
         const accWins = document.getElementById('accWins').innerHTML;
         localStorage['SavedStats'] = battles +'|'+ accWins;
+        document.getElementById('saveStats').style.backgroundColor = 'lightgreen';
+        updateUserData().then(status => document.getElementById('saveStats').style.backgroundColor = null);
     });
     setInterval(updateUserData, 5*60*1000); // 5 min
 
@@ -118,21 +119,23 @@ document.addEventListener("DOMContentLoaded", async function(event) {
             div.id = 'heroId_1000';
             heroDiv.appendChild(div);
         });
-
+    updateUserData();
 });
 
 async function updateUserData() {
-    document.getElementById('myAddress').innerHTML = myAddress;
-    provider.getBalance(myAddress).then((answer) => document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(answer));
-    WBNBContract.balanceOf(myAddress).then((answer) => document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(answer));
-    NFTContract.balanceOf(myAddress).then((answer) => document.getElementById('HeroesNum').innerHTML = answer);
+    if(myAddress > '') {
+        document.getElementById('myAddress').innerHTML = myAddress;
+        provider.getBalance(myAddress).then((answer) => document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(answer));
+        WBNBContract.balanceOf(myAddress).then((answer) => document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(answer));
+        NFTContract.balanceOf(myAddress).then((answer) => document.getElementById('HeroesNum').innerHTML = answer);
+    }
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/1')
         .then(response => response.json())
         .then(answer => {thcPrice = answer['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');});
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/32')
         .then(response => response.json())
         .then(answer => {bnbPrice = answer['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');});
-    await loadAccStats();
+    return await loadAccStats();
 }
 
 async function loadAccStats() {
@@ -159,7 +162,10 @@ async function loadAccStats() {
                 const SavedData = localStorage['SavedStats'].split('|');
                 document.getElementById('accBattlesSave').innerHTML = battles - SavedData[0];
                 document.getElementById('accWinsSave').innerHTML = wins - SavedData[1];
-                document.getElementById('accWinRateSave').innerHTML = ((wins - SavedData[1]) / (battles - SavedData[0]) * 100).toFixed(0);
+                if(battles - SavedData[0] > 0)
+                    document.getElementById('accWinRateSave').innerHTML = ((wins - SavedData[1]) / (battles - SavedData[0]) * 100).toFixed(0);
+                else
+                    document.getElementById('accWinRateSave').innerHTML = '0';
             }
             return true;
         } else {
@@ -403,7 +409,7 @@ function createTable(markettext) {
     const trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
     const headers = ["Name (Skin)", "Left/Max/Used", "Price BNB", "Price $", "$/Battle", "Profit $", "ROI %", 'Link', 'Check'];
 
-    if(!Filters['heroTypeIds'].includes('%2C') && Filters['heroTypeIds'] !== '1000') {
+    if(!Filters['heroTypeIds'].includes('%2C') && Filters['heroTypeIds'] !== '1000' && markettext.length > 3) {
         const iteminfo = markettext[3];
         const PPB = Math.round(iteminfo.price * 100000000 / iteminfo.battles);
         localStorage.setItem("rPrice_" + iteminfo.nameid, PPB + '_' + Date.now());
@@ -454,7 +460,7 @@ function createTable(markettext) {
         row.insertCell(6).outerHTML = '<TD title="'+ (profitRatio*100).toFixed(0) +'%">'+ (markettext[i].percent).toFixed(0) +'</TD>';
         row.insertCell(7).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].refID + '" target="_blank">Market link</A>';
         if(!markettext[i].owner) {
-            row.insertCell(8).innerHTML = '<BUTTON data-status = "check" id="' + markettext[i].id + '">Check</BUTTON>';
+            row.insertCell(8).innerHTML = '<BUTTON data-price = "'+ (markettext[i].price*100000000).toFixed(0) +'" data-status = "check" id="' + markettext[i].id + '">Check</BUTTON>';
         }
         lastFound[markettext[i].id] = true;
     }
@@ -515,7 +521,8 @@ async function checkHero(event) {
         try {
             if(parseInt(signature.substr(-2),16) < 26)
                 throw 'Wrong signature';
-            const gasCost = await MarkWithSigner.estimateGas.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, info['sale'].price + '0000000000', info.saltNonce], signature);
+            const BuyPrice = event.target.dataset['price'];
+            const gasCost = await MarkWithSigner.estimateGas.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, BuyPrice + '0000000000', info.saltNonce], signature);
             console.log(gasCost.toString());
             event.target.disabled = false;
             event.target.style.backgroundColor = 'lawngreen';
@@ -565,6 +572,7 @@ function setIgnore(div, reason) {
 
 async function buyHero(heroID, signature) {
     let myButton = document.getElementById(heroID);
+    const BuyPrice = myButton.dataset['price'];
     myButton.innerHTML = "⏳";
     myButton.disabled = true;
 
@@ -589,7 +597,7 @@ async function buyHero(heroID, signature) {
             return;
         }
         try {
-            const tx = await MarkWithSigner.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, info['sale'].price + '0000000000', info.saltNonce], signature, { gasPrice: 6000000000 });
+            const tx = await MarkWithSigner.matchTransaction([info['ownerAddress'], info['nftContract'], "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"], [info.tokenId, BuyPrice + '0000000000', info.saltNonce], signature, { gasPrice: 6000000000 });
             const receipt = await tx.wait();
             console.log(receipt);
             if(receipt.status === 1) {
@@ -605,7 +613,6 @@ async function buyHero(heroID, signature) {
             document.getElementById('MintStatus').innerHTML = '<I>Error: '+message+'</I>';
             myButton.innerHTML = "❌";
         }
-
     }
 }
 
@@ -705,5 +712,4 @@ async function unWrapBNB() {
         myButton.innerHTML = "Wrap &gt;";
         myButton.disabled = false;
     }
-
 }
