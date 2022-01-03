@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="../favicon.png">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=9" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=10" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -17,12 +17,12 @@
 <DIV>Адрес: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>Цена THC: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ График ]</A> </DIV>
 <DIV>Цена WBNB: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Балансы: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
-<DIV>У вас есть: <SPAN id="HeroesNum"></SPAN> героев</DIV>
+<DIV>Балансы: <SPAN id="myBNB">0</SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB">0</SPAN> WBNB</DIV>
+<DIV>У вас есть: <SPAN id="HeroesNum">0</SPAN> героев</DIV>
 <DIV>Auth token с маркета: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
-Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles"></span> | Побед: <span id="accWins"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRate"></span>% <button id="saveStats">Сохранить</button><BR>
-После последнего сохранения: Боев: <span id="accBattlesSave"></span> | Побед: <span id="accWinsSave"></span> | Процент побед: <span style="font-weight: bold;" id="accWinRateSave"></span>%
+Ник: <span id="accUsername"></span> | Всего боев: <span id="accBattles">0</span> | Побед: <span id="accWins">0</span> | Процент побед: <span style="font-weight: bold;" id="accWinRate">0</span>% <button id="saveStats">Сохранить</button><BR>
+После последнего сохранения: Боев: <span id="accBattlesSave">0</span> | Побед: <span id="accWinsSave">0</span> | Процент побед: <span style="font-weight: bold;" id="accWinRateSave">0</span>%
 </DIV>
 <BR><DIV><B>Процент побед</B> для расчета прибыли: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Фильтры:</B></DIV>
@@ -72,13 +72,14 @@
     * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
     * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли купить лот (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
     * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
-    * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
     * При загрузке данных для <B>ОДНОГО</B> героя цена <B>WBNB/Battle</B> из четвертого ряда будет сохранена в памяти на 2 часа. При последующей загрузке<BR>
     &nbsp;&nbsp;в разделе Latest цена будет <B>сверяться</B> и выгодные предложения (разница >5%) <B>подствечиваться золотым</B> цветом.<BR>
     &nbsp;&nbsp;Так же эта цена будет предлагаться за выставления героя на продажу.<BR>
     * Чтобы быстро загрузить данные для <B>одного</B> героя просто нажмите на него с зажатой кнопкой <B>[Ctrl]</B>.<BR>
     * При наведении мыши на колонку <B>$/Battle</B> выводится информация о <B>BNB/Battle</B>.<BR>
     * При наведении мыши на колонку <B>ROI</B> (Возврат на вложения) выводится информация о <B>разнице</B> со средней ценой сохраненной ранее.
+    * Если установить "Остаток битв" <B>И</B> "Процент битв" в ноль - вещи будут загружаться с сортировкой "Сперва дешевые".<BR>
+    * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
 </DIV><BR>
 <DIV><B>Как получить токен авторизации на маркете?</B><BR>
     * Перейдите на <A target="_blank" href="https://marketplace.thetanarena.com/">официальный маркет</A>.<BR>
