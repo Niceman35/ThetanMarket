@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=9" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=10" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -18,8 +18,8 @@
 <DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
 <DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> WBNB</DIV>
-<DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
+<DIV>Balance: <SPAN id="myBNB">0</SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB">0</SPAN> WBNB</DIV>
+<DIV>You have: <SPAN id="HeroesNum">0</SPAN> heroes</DIV>
 <DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
 Username: <span id="accUsername"></span> | Battles: <span id="accBattles">0</span> | Wins: <span id="accWins">0</span> | WinRate: <span style="font-weight: bold;" id="accWinRate">0</span>% <button id="saveStats">Save stats</button><BR>
@@ -80,6 +80,7 @@ After the last save: Battles: <span id="accBattlesSave">0</span> | Wins: <span i
     * To load the data for <B>ONE</B> hero, you can hold down the <B>[Ctrl]</B> key and click on the hero icon.<BR>
     * If you move the mouse cursor to the $/Battle column, the BNB/Battle price will be displayed.<BR>
     * If you move the mouse pointer to the ROI column, you will get the difference to the 'average price' in percent.<BR>
+    * If you set "Battles left" <B>AND</B> "Percent left" to zero - items will be loaded with a "Cheapest first" market sort.<BR>
     * You can also use the tool <B>without</B> Auth Token or Wallet connection (just use the Market link).<BR>
 </DIV>
 <BR>

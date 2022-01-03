@@ -44,26 +44,23 @@ document.addEventListener("DOMContentLoaded", async function(event) {
         });
         window.ethereum.autoRefreshOnNetworkChange = false;
         signer = provider.getSigner();
-        try {
-            signer.getAddress().then((result) => {
-                myAddress = result;
-                MarkWithSigner = MarkContract.connect(signer);
-                console.log('Address: '+myAddress);
-                window.ethereum.on('accountsChanged', function (accounts) {
-                    window.location.reload();
-                });
-                provider.getNetwork().then(chainId => {
-                    if(chainId.chainId !== 56) {
-                        document.getElementById('webConnect').innerHTML = 'Switch to Binance Smart Chain';
-                    } else {
-                        document.getElementById('divConnect').style.display = 'none';
-                    }
-                });
+        signer.getAddress().then((result) => {
+            myAddress = result;
+            window.ethereum.on('accountsChanged', accounts => window.location.reload());
+            MarkWithSigner = MarkContract.connect(signer);
+            console.log('Address: '+myAddress);
+            provider.getNetwork().then(chainId => {
+                if(chainId.chainId !== 56) {
+                    document.getElementById('webConnect').innerHTML = 'Switch to Binance Smart Chain';
+                } else {
+                    document.getElementById('divConnect').style.display = 'none';
+                    updateBallances();
+                }
             });
-        } catch (e) {
-            console.log(e);
-            alert('Can not connect to the  Web3 compatible wallet.');
-        }
+        }).catch((error) => {
+            console.error(error);
+            console.log('Can not connect to the wallet');
+        });
     } else {
         document.getElementById('webConnect').disabled = false;
         alert('Not found Web3 compatible wallet.');
@@ -92,9 +89,11 @@ document.addEventListener("DOMContentLoaded", async function(event) {
         const accWins = document.getElementById('accWins').innerHTML;
         localStorage['SavedStats'] = battles +'|'+ accWins;
         document.getElementById('saveStats').style.backgroundColor = 'lightgreen';
-        updateUserData().then(status => document.getElementById('saveStats').style.backgroundColor = null);
+        loadAccStats().then(status => document.getElementById('saveStats').style.backgroundColor = null);
     });
-    setInterval(updateUserData, 5*60*1000); // 5 min
+    setInterval(updateBallances, 5*60*1000); // 5 min
+    setInterval(updatePrice, 5*60*1000); // 5 min
+    setInterval(loadAccStats, 10*60*1000); // 10 min
 
     fetch('https://data.thetanarena.com/thetan/v1/hero/feConfigs?configVer=-1')
         .then(response => response.json())
@@ -119,23 +118,27 @@ document.addEventListener("DOMContentLoaded", async function(event) {
             div.id = 'heroId_1000';
             heroDiv.appendChild(div);
         });
-    updateUserData();
+    updatePrice();
+    if(localStorage['Bearer'])
+        loadAccStats()
 });
 
-async function updateUserData() {
+async function updateBallances() {
     if(myAddress > '') {
         document.getElementById('myAddress').innerHTML = myAddress;
         provider.getBalance(myAddress).then((answer) => document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(answer));
         WBNBContract.balanceOf(myAddress).then((answer) => document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(answer));
         NFTContract.balanceOf(myAddress).then((answer) => document.getElementById('HeroesNum').innerHTML = answer);
     }
+}
+
+async function updatePrice() {
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/1')
         .then(response => response.json())
-        .then(answer => {thcPrice = answer['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');});
+        .then(answer => {thcPrice = answer['data'];document.getElementById('THC').innerHTML = thcPrice;if(!thcPrice) alert('Error: Can not load THC price!');return true;});
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/32')
         .then(response => response.json())
-        .then(answer => {bnbPrice = answer['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');});
-    return await loadAccStats();
+        .then(answer => {bnbPrice = answer['data'];document.getElementById('WBNB').innerHTML = bnbPrice;if(!bnbPrice) alert('Error: Can not load WBNB price!');return true;});
 }
 
 async function loadAccStats() {
@@ -172,10 +175,10 @@ async function loadAccStats() {
             alert('Wrong Auth Token provided');
             localStorage.setItem('Bearer', '');
             document.getElementById('Barrier').value = '';
-            return false;
+            return true;
         }
     } else {
-        return false;
+        return true;
     }
 }
 
@@ -193,31 +196,24 @@ async function ConnectBinance() {
     };
     if (typeof window.ethereum !== "undefined") {
         document.getElementById('webConnect').disabled = true;
-        const chainId = await provider.getNetwork();
-        if(chainId.chainId !== 56) {
+        if(provider['_network'].chainId !== 56) {
             try {
-                await provider.send('wallet_switchEthereumChain',
-                    [{ chainId: '0x38' }]
-                );
+                await provider.send('wallet_switchEthereumChain', [{ chainId: '0x38' }]);
             } catch (switchError) {
                 if(typeof switchError === "string") {
                     alert('Your wallet do not support network switch. Switch network manually if possible.');
                     return;
                 }
-                await provider.send('wallet_addEthereumChain',
-                    [chainsData]
-                );
+                await provider.send('wallet_addEthereumChain', [chainsData]);
             }
         }
-
         try {
             myAddress = await provider.send("eth_requestAccounts", []);
             myAddress = myAddress[0];
-            window.ethereum.on('accountsChanged', function (accounts) {
-                window.location.reload();
-            });
-            updateBallances();
+            console.log('Address: '+myAddress);
             document.getElementById('divConnect').style.display = 'none';
+            window.ethereum.on('accountsChanged', accounts => window.location.reload());
+            updateBallances();
         } catch (e) {
             document.getElementById('webConnect').disabled = false;
             alert("Can not connect to Web3 wallet (MetaMask)");
@@ -301,6 +297,13 @@ function getSearchURL() {
     else
         delete Filters['batPercentMin'];
     Filters['battleMin'] = document.getElementById('fBattleMin').value;
+
+    Filters['sort'] = 'PPB';
+    if (document.getElementById('fBattleMin').value === '0' && document.getElementById('fBatPercentMin').value === '0') {
+        Filters['sort'] = 'PriceAsc';
+        Filters['battleMin'] = '0';
+        delete Filters['batPercentMin'];
+    }
 
     let newFilters = [];
     for(let fName in Filters) {
@@ -604,7 +607,7 @@ async function buyHero(heroID, signature) {
                 myButton.innerHTML = "✔";
                 document.getElementById('MintStatus').innerHTML = '<B>Bought sucessfully!</B>';
                 BoughtSound.play();
-                updateUserData();
+                updateBallances();
             }
         } catch (e) {
             let message = 'Error while executing transaction.';
@@ -677,8 +680,7 @@ async function wrapBNB() {
             myButton.innerHTML = "Wrap &gt;";
             myButton.disabled = false;
             document.getElementById('MintStatus').innerHTML = '<B>Wrapped sucessfully!</B>';
-            document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(await WBNBContract.balanceOf(myAddress));
-            document.getElementById('myBNB').innerHTML  = ethers.utils.formatEther(await provider.getBalance(myAddress));
+            updateBallances();
         }
     } catch (e) {
         document.getElementById('MintStatus').innerHTML = '<I>Error: '+e.message+'</I>';
@@ -704,8 +706,7 @@ async function unWrapBNB() {
             myButton.innerHTML = "&lt; UnWrap";
             myButton.disabled = false;
             document.getElementById('MintStatus').innerHTML = '<B>UnWrapped sucessfully!</B>';
-            document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(await WBNBContract.balanceOf(myAddress));
-            document.getElementById('myBNB').innerHTML  = ethers.utils.formatEther(await provider.getBalance(myAddress));
+            updateBallances();
         }
     } catch (e) {
         document.getElementById('MintStatus').innerHTML = '<I>Error: '+e.message+'</I>';
