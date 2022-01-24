@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="../favicon.png">
     <script src="../ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="../main.js?v=10" type="application/javascript"></SCRIPT>
+    <SCRIPT src="../main.js?v=11" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Отправь разрабтчику на чай: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (любые коины)</DIV>
@@ -16,8 +16,8 @@
 <DIV><A href="../inventory.html"><B>ПРОДАЖА ГЕРОЕВ (Пока только English)</B></A></DIV><BR>
 <DIV>Адрес: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>Цена THC: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ График ]</A> </DIV>
-<DIV>Цена WBNB: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Балансы: <SPAN id="myBNB">0</SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB">0</SPAN> WBNB</DIV>
+<DIV>Цена BNB: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB <BUTTON  disabled id="TradeBNB">&lt; Trade</BUTTON> <Input type="number" id="BNBAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <Input type="number" id="THCAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON disabled id="TradeTHC">Trade &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> THC <button id="approveTHCTrade" style="background-color: gold">Approve</button></DIV>
 <DIV>У вас есть: <SPAN id="HeroesNum">0</SPAN> героев</DIV>
 <DIV>Auth token с маркета: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
@@ -62,34 +62,43 @@
         <DIV id="heroes" class="heroes"></DIV>
     </DIV>
 </form>
-<DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV><BUTTON id="updateButton">Загрузить/Обновить данные</BUTTON>  Сколько загружать (сортировка по цене, ниже значение = быстрее загрузка, шаг 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4">
+<LABEL>Load sort: <SELECT id="sortItems">
+    <OPTION value="PPB" selected="selected">Цена/Битву</OPTION>
+    <OPTION value="PriceAsc">Самые дешевые</OPTION>
+    <OPTION value="Latest">Последние</OPTION>
+</SELECT></LABEL></DIV>
 <DIV id="autoUpdate">Авто-обновление: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">сек. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <HR>
-<DIV><B>Как использовать?</B><BR>
+<DIV>
+<B>Как использовать?</B><BR>
     * Выбрать фильтры, нажать <B>"Загрузить"</B> чтобы загрузить или обновить лоты с официального маркета. Результат будет отсортирован по прибыльности (доход минус цена).<BR>
     * Добавить <B>Auth Token</B> с сайта Маркета и <B>подключить</B> ваш кошелек для <B>дополнительных</B> функций.<BR>
     * Нажать на кнопку "<B>Check</B>" чтобы проверить можно ли купить лот (если нет нажать "Ignore" чтобы больше не показывать этот лот).<BR>
-    * Нажать на кнопку <B>"BUY"</B> и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
-    * При загрузке данных для <B>ОДНОГО</B> героя цена <B>WBNB/Battle</B> из четвертого ряда будет сохранена в памяти на 2 часа. При последующей загрузке<BR>
+    * Нажать на кнопку "<B>BUY</B>" и подтвердить транзакцию в кошельке если хотите купить героя (купленный герой появится на официальном маркете через несколько секунд).<BR>
+    * При загрузке данных для <B>ОДНОГО</B> героя цена <B>THC/Battle</B> из четвертого ряда будет сохранена в памяти на 2 часа. При последующей загрузке<BR>
     &nbsp;&nbsp;в разделе Latest цена будет <B>сверяться</B> и выгодные предложения (разница >5%) <B>подствечиваться золотым</B> цветом.<BR>
     &nbsp;&nbsp;Так же эта цена будет предлагаться за выставления героя на продажу.<BR>
     * Чтобы быстро загрузить данные для <B>одного</B> героя просто нажмите на него с зажатой кнопкой <B>[Ctrl]</B>.<BR>
-    * При наведении мыши на колонку <B>$/Battle</B> выводится информация о <B>BNB/Battle</B>.<BR>
+    * При наведении мыши на колонку <B>$/Battle</B> выводится информация о <B>THC/Battle</B>.<BR>
     * При наведении мыши на колонку <B>ROI</B> (Возврат на вложения) выводится информация о <B>разнице</B> со средней ценой сохраненной ранее.
     * Если установить "Остаток битв" <B>И</B> "Процент битв" в ноль - вещи будут загружаться с сортировкой "Сперва дешевые".<BR>
     * Вы можете использовать сайт без Auth Token или подключения кошелька, но без возможности быстро проверить или купить героя.<BR>
 </DIV><BR>
-<DIV><B>Как получить токен авторизации на маркете?</B><BR>
+<DIV>
+<B>Как получить токен авторизации на маркете?</B><BR>
     * Перейдите на <A target="_blank" href="https://marketplace.thetanarena.com/">официальный маркет</A>.<BR>
     * Перейдите в инвентарь, нажмите F12, во вкладке "Console" вставьте <B>localStorage['theta/accessToken']</B> и нажмите [Enter].<BR>
     * Скопируйте длинный код и вставьте в поле "Auth token с маркета" выше.<BR>
     * После этого Вы сможете проверить и купить героя прямо на сайте (без авторизации маркет не отдает нужные данные для покупки).<BR>
 </DIV><BR>
-<DIV><B>Возможности сервиса</B><BR>
+<DIV>
+<B>Возможности сервиса</B><BR>
     * Легко <B>проверить</B> баланс WBNB, курсы обмена, а так же ваш WinRate.<BR>
-    * Легкая <B>конвертация</B> между BNB и WBNB.<BR>
+    * Проверить ваш текущий WinRate для своего аккаунта и проверить WinRate с <B>сохраненного</B> состояния.<BR>
+    * Легкая <B>конвертация</B> между BNB и THC.<BR>
     * Загрузка героев с официального маркета с автоматической сортировкой по <B>прибыльности</B>.<BR>
     * Возможность <B>сортировать</B> по всем полям таблицы.<BR>
     * Возможность быстро <B>проверить</B> лоты на возможность их купить (<B>фильтровать</B> лоты с ошибками).<BR>
