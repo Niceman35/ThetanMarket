@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="styles.css?v=8">
     <link rel="icon" type="image/png" sizes="128x128" href="favicon.png">
     <script src="ethers-5.4.umd.min.js" type="application/javascript"></script>
-    <SCRIPT src="main.js?v=10" type="application/javascript"></SCRIPT>
+    <SCRIPT src="main.js?v=11" type="application/javascript"></SCRIPT>
 </head>
 <body>
 <DIV style="text-align: center;background-color: #0cb00f; color: white;">Buy me a cup of coffee: 0xE365bDd397F556A66eDcF902957dFa7beB086839 (any coins)</DIV>
@@ -17,13 +17,13 @@
 <DIV><A href="inventory.html"><B>SELL YOUR HEROES</B></A></DIV><BR>
 <DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
-<DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Balance: <SPAN id="myBNB">0</SPAN> BNB <BUTTON id="bUWrap">&lt; UnWrap</BUTTON> <Input type="number" id="wrapAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON id="bWrap">Wrap &gt;</BUTTON> <SPAN id="myWBNB">0</SPAN> WBNB</DIV>
-<DIV>You have: <SPAN id="HeroesNum">0</SPAN> heroes</DIV>
+<DIV>BNB price: <SPAN id="WBNB"></SPAN></DIV>
+<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB <BUTTON  disabled id="TradeBNB">&lt; Trade</BUTTON> <Input type="number" id="BNBAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <Input type="number" id="THCAmount" size="5" value="0.01" min="0.01" step="0.01" style="width:80px"> <BUTTON disabled id="TradeTHC">Trade &gt;</BUTTON> <SPAN id="myWBNB"></SPAN> THC <button id="approveTHCTrade" style="background-color: gold">Approve</button></DIV>
+<DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
 <DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
 Username: <span id="accUsername"></span> | Battles: <span id="accBattles">0</span> | Wins: <span id="accWins">0</span> | WinRate: <span style="font-weight: bold;" id="accWinRate">0</span>% <button id="saveStats">Save stats</button><BR>
-After the last save: Battles: <span id="accBattlesSave">0</span> | Wins: <span id="accWinsSave">0</span> | WinRate: <span style="font-weight: bold;" id="accWinRateSave">0</span>%
+    After the last save: Battles: <span id="accBattlesSave">0</span> | Wins: <span id="accWinsSave">0</span> | WinRate: <span style="font-weight: bold;" id="accWinRateSave">0</span>%
 </DIV>
 <BR><DIV><B>Win rate</B> for profit calculation: <INPUT id="WinRate" value="50" type="number" min="0" max="100" size="3">%</DIV>
 <BR><DIV><B>Filters:</B></DIV>
@@ -63,40 +63,43 @@ After the last save: Battles: <span id="accBattlesSave">0</span> | Wins: <span i
     <DIV id="heroes" class="heroes"></DIV>
 </DIV>
 </form>
-<DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4"></DIV>
+<DIV><BUTTON id="updateButton">Load/Update data</BUTTON>  Items to load (lower = faster, step 50): <INPUT id="Load" value="50" type="number" min="50" max="1000" step="50" size="4">
+<LABEL>Load sort: <SELECT id="sortItems">
+    <OPTION value="PPB" selected="selected">Price/Battle</OPTION>
+    <OPTION value="PriceAsc">Cheapest</OPTION>
+    <OPTION value="Latest">Latest</OPTION>
+</SELECT></LABEL></DIV>
 <DIV id="autoUpdate">Auto update: <input type="number" min="5" max="30" step="1" value="10" id="autoDelay" style="width: 30px">sec. <INPUT type="button" value="START" id="autoStart" data-status="start"> <SPAN id="autoLeft"></SPAN></DIV>
 <DIV id="MintStatus"></DIV>
 <DIV id="marketData"></DIV>
 <HR>
 <DIV>
-    <B>How to use.</B><BR>
+<B>How to use.</B><BR>
     * Choose <B>Filters</B> and click "<B>Load/Update</B>" to load items from the official market, sorted by <B>profitability</B> (revenue minus cost).<BR>
     * Add <B>Auth Token</B> from official market and connect your <B>wallet</B> for advanced features.<BR>
     * Click the "<B>Check</B>" button to check if an item is <B>buyable</B> (if not, you can click the "<B>Ignore</B>" button to ignore that item in future searches).<BR>
     * Click the "<B>BUY</B>" button and confirm the transaction in the <B>Metamask</B> to buy a hero (it will appear in your market inventory in a few minutes).<BR>
     * When you load data for <B>ONE</B> hero, the <B>USD/Battles</B> of the fourth row will be saved for 2 hours.<BR>
     &nbsp;&nbsp;If you load data from the "Latest items" - this value will be <B>compared</B> and very good offers (> 5% difference) will be highlighted with <B>GOLD</B>.<BR>
-    &nbsp;&nbsp;This WBNB/Battle value is also <B>suggested</B> on the SELL HERO page as a <B>reasonable</B> price of your heroes.<BR>
+    &nbsp;&nbsp;This THC/Battle value is also <B>suggested</B> on the SELL HERO page as a <B>reasonable</B> price of your heroes.<BR>
     * To load the data for <B>ONE</B> hero, you can hold down the <B>[Ctrl]</B> key and click on the hero icon.<BR>
-    * If you move the mouse cursor to the $/Battle column, the BNB/Battle price will be displayed.<BR>
+    * If you move the mouse cursor to the $/Battle column, the THC/Battle price will be displayed.<BR>
     * If you move the mouse pointer to the ROI column, you will get the difference to the 'average price' in percent.<BR>
     * If you set "Battles left" <B>AND</B> "Percent left" to zero - items will be loaded with a "Cheapest first" market sort.<BR>
     * You can also use the tool <B>without</B> Auth Token or Wallet connection (just use the Market link).<BR>
-</DIV>
-<BR>
+</DIV><BR>
 <DIV>
-    <B>How do you get the Auth token to check lots?</B><BR>
+<B>How do you get the Auth token to check lots?</B><BR>
     * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
     * Go to your "Inventory", click <B>[F12]</B>, go to the "<B>Console</B>" tab, paste <B>localStorage['theta/accessToken']</B> and click <B>[Enter]</B>.<BR>
     * Copy and paste the long code into the "Market Auth token" field above.<BR>
     * You will be able to <B>check and BUY</B> heroes directly from this page (without Auth.token it is impossible to get the data needed to send a transaction).<BR>
-</DIV>
-<BR>
+</DIV><BR>
 <DIV>
-    <B>Website features</B><BR>
-    * Easily check your WBNB balance, exchange rates and win rate.<BR>
+<B>Website features</B><BR>
+    * Easily check your THC balance, exchange rates and win rate.<BR>
     * Check your current WinRate for your account and check WinRate from <B>saved</B> state.<BR>
-    * Easily <B>convert</B> between BNB and WBNB.<BR>
+    * Easily <B>convert</B> between BNB and THC.<BR>
     * Load items from the official market and sort by <B>profitability</B>.<BR>
     * You can load items using filters or most recently added items.<BR>
     * It is possible to <B>sort</B> quickly by any column.<BR>

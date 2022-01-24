@@ -3,13 +3,14 @@ let bnbPrice = 0;
 let provider;
 let signer;
 let myAddress = '';
-const WBNBAddress = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c";
-const WBNBAbi = [
+const THCAddress = "0x24802247bd157d771b7effa205237d8e9269ba8a";
+const THCAbi = [
     "function balanceOf(address) public view returns (uint256)",
     "function deposit() public payable",
     "function withdraw(uint) public",
 ];
-let WBNBContract;
+let THCContract;
+
 const NFTAddress = "0x98eb46CbF76B19824105DfBCfa80EA8ED020c6f4";
 const NFTAbi = [
     "function balanceOf(address) public view returns (uint256)",
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async function(event) {
             }
         });
         window.ethereum.autoRefreshOnNetworkChange = false;
-        WBNBContract = new ethers.Contract(WBNBAddress, WBNBAbi, provider);
+        THCContract = new ethers.Contract(THCAddress, THCAbi, provider);
         NFTContract = new ethers.Contract(NFTAddress, NFTAbi, provider);
         signer = provider.getSigner();
         try {
@@ -81,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async function(event) {
 async function updateUserData() {
     document.getElementById('myAddress').innerHTML = myAddress;
     provider.getBalance(myAddress).then((answer) => document.getElementById('myBNB').innerHTML = ethers.utils.formatEther(answer));
-    WBNBContract.balanceOf(myAddress).then((answer) => document.getElementById('myWBNB').innerHTML = ethers.utils.formatEther(answer));
+    THCContract.balanceOf(myAddress).then((answer) => document.getElementById('myTHC').innerHTML = ethers.utils.formatEther(answer));
     NFTContract.balanceOf(myAddress).then((answer) => document.getElementById('HeroesNum').innerHTML = answer);
     fetch('https://exchange.thetanarena.com/exchange/v1/currency/price/1')
         .then(response => response.json())
@@ -177,21 +178,31 @@ async function loadHeroes() {
     object.innerHTML = "⏳";
     object.disabled = true;
 
-    let responce = await fetch("https://data.thetanarena.com/thetan/v1/hero/user?from=0&size=50&market=true&skinVer=-1",
-        {
-            method: 'GET',
-            withCredentials: true,
-            headers: new Headers({
-                'Authorization': 'Bearer ' + localStorage['Bearer'],
-                'Content-Type': 'application/json'
-            })
-        });
-    let data = await responce.json();
-    let skinsInfo = data['data']['skinConfigs']['skinConfigs'];
+    let total = 0;
+    let from = 0;
+    let heroesData = [];
+    let JSONdata = [];
+    do {
+        let responce = await fetch("https://data.thetanarena.com/thetan/v1/hero/user?from="+from+"&size=50&market=true&skinVer=-1",
+            {
+                method: 'GET',
+                withCredentials: true,
+                headers: new Headers({
+                    'Authorization': 'Bearer ' + localStorage['Bearer'],
+                    'Content-Type': 'application/json'
+                })
+            });
+        JSONdata = await responce.json();
+
+        heroesData = heroesData.concat(JSONdata['data']['heroes']);
+        total = JSONdata['page']['total'];
+        from += 50;
+    } while(from < total);
+    let skinsInfo = JSONdata['data']['skinConfigs']['skinConfigs'];
     skinsInfo.forEach(skin => {
         skinsData[skin.id] = skin.name;
     });
-    createTable(data['data']['heroes']);
+    createTable(heroesData);
     loadAccStats();
     object.innerHTML = 'Load/Update Inventory';
     object.disabled = false;
@@ -207,7 +218,7 @@ function createTable(markettext) {
     let HeroR = ['Common', 'Epic', 'Legendary'];
     let SkinR = ['Normal', 'Rare', 'Mythical'];
     let trophy = ['0','H','G','F','E','D','C','B','A','S','SS'];
-    let headers = ["Name (Skin)", "Left/Max/Used", "Buy price BNB", "$/Battle", "Earn $", "ROI %", 'Updated', 'Link', 'Price BNB', 'After fees', '$/Battle', 'SELL/REMOVE'];
+    let headers = ["Name (Skin)", "Left/Max/Used", "Buy price THC", "$/Battle", "Earn $", "ROI %", 'Updated', 'Link', 'Price THC', 'After fees', '$/Battle', 'SELL/REMOVE'];
     let table = document.createElement("TABLE");  //makes a table element for the page
     table.className = 'marketTable sortable';
     table.id = 'InventoryTable';
@@ -219,6 +230,7 @@ function createTable(markettext) {
         2: [0, 0.750, 1.25, 1.75, 2.25, 2.75]
     };
     let totalBNB = 0;
+    let totalNow = 0;
     let rows = 0;
     for(let i = 0; i < markettext.length; i++) {
         let hRank = markettext[i].heroRanking;
@@ -246,10 +258,14 @@ function createTable(markettext) {
             buyPrice: BNBPrice
         });
 
-        totalBNB += BNBPrice;
-        let USDPrice = BNBPrice*bnbPrice;
+        let USDPrice = BNBPrice * thcPrice;
         let profit = (battles * loseRate * 1 + battles * winRate * reward) * thcPrice;
         let percent = Math.round((profit / USDPrice) * 100);
+        if(BNBPrice < 200) {
+            USDPrice = BNBPrice * bnbPrice;
+            profit = (battles * loseRate * 1 + battles * winRate * reward) * thcPrice;
+            percent = Math.round((profit / USDPrice) * 100);
+        }
         if(markettext[i].sale && markettext[i].sale.price.value) {
             row.style.backgroundColor = 'burlywood';
         }
@@ -259,9 +275,9 @@ function createTable(markettext) {
         if(localStorage['rPrice_' + markettext[i].heroTypeId]) {
             let avgPrice = localStorage['rPrice_' + markettext[i].heroTypeId].split('_');
             if (Date.now() < avgPrice[1] + 60 * 60 * 8) {
-                sellPrice = (avgPrice[0] / 100000000 * battles).toFixed(3);
-                sellFeePrice = (sellPrice * 0.9585).toFixed(4);
-                sellPricePb = (avgPrice[0] / 100000000 * bnbPrice).toFixed(2);
+                sellPrice = (avgPrice[0] / 100000000 * battles).toFixed(0);
+                sellFeePrice = (sellPrice * 0.9585).toFixed(1);
+                sellPricePb = (avgPrice[0] / 100000000 * thcPrice).toFixed(2);
             }
         }
         let timeAgo = (Date.now() - Date.parse(markettext[i].lastModified)) / 60000;
@@ -273,6 +289,9 @@ function createTable(markettext) {
             timeAgo = timeAgo.toFixed(0) + ' hours';
         }
 
+        totalBNB += BNBPrice;
+        totalNow += parseFloat(sellFeePrice);
+
         row.insertCell(0).innerHTML = skinName;
         row.insertCell(1).outerHTML = '<TD data-sort="'+ battles + colorUsed +'"><B>'+ battles +'</B>&nbsp;/&nbsp;'+ hRank.totalBattleCapTHC +'&nbsp;/&nbsp;'+ (hRank.totalBattleCapTHC - battles) +'&nbsp;('+ percentUsed.toFixed(0) +'%)</TD>';
         row.insertCell(2).outerHTML = '<TD title="$'+ (USDPrice).toFixed(2) +'">'+ (BNBPrice).toFixed(4) +'</TD>';
@@ -283,14 +302,14 @@ function createTable(markettext) {
         row.insertCell(7).innerHTML = '<A href="https://marketplace.thetanarena.com/item/' + markettext[i].id + '" target="_blank">Market</A>';
         if(markettext[i].sale && markettext[i].sale.price.value) {
             let sellingPrice = markettext[i].sale.price.value / 100000000;
-            row.insertCell(8).outerHTML = '<TD title="'+sellPrice+'">'+ (sellingPrice).toFixed(3) +' WBNB</TD>';
-            row.insertCell(9).outerHTML = '<TD title="'+sellFeePrice+'">'+ (sellingPrice*0.9585).toFixed(4) +' WBNB</TD>';
-            row.insertCell(10).outerHTML = '<TD title="'+sellPricePb+'">'+ (sellingPrice * bnbPrice/battles).toFixed(2) +' USD</TD>';
+            row.insertCell(8).outerHTML = '<TD title="'+sellPrice+'">'+ (sellingPrice).toFixed(0) +' THC</TD>';
+            row.insertCell(9).outerHTML = '<TD title="'+sellFeePrice+'">'+ (sellingPrice*0.9585).toFixed(1) +' THC</TD>';
+            row.insertCell(10).outerHTML = '<TD title="'+sellPricePb+'">'+ (sellingPrice * thcPrice/battles).toFixed(2) +'</TD>';
             row.insertCell(11).innerHTML = '<BUTTON data-nftid="'+ markettext[i].nftId +'" onClick={stopSell(this)} >STOP SELLING</BUTTON>';
         } else {
-            row.insertCell(8).innerHTML = '<input class="sellPrice" type="number" step="0.001" name="saleP[]" value="'+ sellPrice +'" oninput="setSellPrice(this);" style="width: 50px">';
-            row.insertCell(9).innerHTML = '<input type="number" step="0.0001" name="salePF[]" value="'+ sellFeePrice +'" oninput="setSellPrice(this);" style="width: 58px">';
-            row.insertCell(10).innerHTML = '<input type="number" step="0.01" data-battles="'+ battles +'" name="USDpB[]" value="'+ sellPricePb +'" oninput="setSellPrice(this);" style="width: 45px">';
+            row.insertCell(8).innerHTML = '<input class="sellPrice" type="number" step="1" name="saleP[]" value="'+ sellPrice +'" oninput="setSellPrice(this);" style="width: 70px">';
+            row.insertCell(9).innerHTML = '<input type="number" step="0.1" name="salePF[]" value="'+ sellFeePrice +'" oninput="setSellPrice(this);" style="width: 80px">';
+            row.insertCell(10).innerHTML = '<input type="number" step="0.01" data-battles="'+ battles +'" name="USDpB[]" value="'+ sellPricePb +'" oninput="setSellPrice(this);" style="width: 65px">';
             row.insertCell(11).innerHTML = '<BUTTON data-nftid="'+ markettext[i].nftId +'" onClick={Sell(this)} >SELL</BUTTON>';
         }
         rows++;
@@ -298,11 +317,15 @@ function createTable(markettext) {
     let row = table.insertRow(rows);
     row.insertCell(0).innerHTML = '';
     row.insertCell(1).innerHTML = '';
-    row.insertCell(2).innerHTML = (totalBNB).toFixed(4);
-    row.insertCell(3).innerHTML = (totalBNB * bnbPrice).toFixed(2);
+    row.insertCell(2).innerHTML = (totalBNB).toFixed(0);
+    row.insertCell(3).innerHTML = (totalBNB * thcPrice).toFixed(2);
     row.insertCell(4).innerHTML = '';
     row.insertCell(5).innerHTML = '';
     row.insertCell(6).innerHTML = '';
+    row.insertCell(7).innerHTML = '';
+    row.insertCell(8).innerHTML = '';
+    row.insertCell(9).innerHTML = (totalNow).toFixed(0) + ' THC';
+    row.insertCell(10).innerHTML = (totalNow * thcPrice).toFixed(2);
 
     let header = table.createTHead();
     let headerRow = header.insertRow(0);
@@ -319,7 +342,7 @@ async function loadHistory() {
     object.disabled = true;
 
     let trans = {};
-    let responce = await fetch("https://deep-index.moralis.io/api/v2/"+ myAddress +"/erc20/transfers?chain=bsc&limit=50",
+    let responce = await fetch("https://deep-index.moralis.io/api/v2/"+ myAddress +"/erc20/transfers?chain=bsc&limit=30",
         {
             method: 'GET',
             withCredentials: true,
@@ -330,7 +353,7 @@ async function loadHistory() {
         });
     let JSONanswer = await responce.json();
     JSONanswer['result'].forEach(info => {
-        if(info['address'] === '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c') {
+        if(info['address'] === THCAddress) {
             if (!trans[info['transaction_hash']]) trans[info['transaction_hash']] = {};
             trans[info['transaction_hash']]['time'] = (Date.now() - Date.parse(info.block_timestamp)) / 1000;
             if (info['to_address'] === myAddress.toLowerCase()) {
@@ -345,7 +368,7 @@ async function loadHistory() {
         }
     });
 
-    responce = await fetch("https://deep-index.moralis.io/api/v2/"+ myAddress +"/nft/transfers?chain=bsc&format=decimal&direction=both&limit=50",
+    responce = await fetch("https://deep-index.moralis.io/api/v2/"+ myAddress +"/nft/transfers?chain=bsc&format=decimal&direction=both&limit=30",
         {
             method: 'GET',
             withCredentials: true,
@@ -404,7 +427,7 @@ function createHistoryTable(markettext) {
         return;
     }
     marketDiv.innerHTML = '';
-    let headers = ["NFT (Click to parse)", "Operation", "Transfer WBNB", "price Market", "Profit USD", "Market Link", "Time ago", "Explorer"];
+    let headers = ["NFT (Click to parse)", "Operation", "Transfer THC", "price Market", "Profit USD", "Market Link", "Time ago", "Explorer"];
     let table = document.createElement("TABLE");  //makes a table element for the page
     table.className = 'marketTable sortable';
     table.id = "HistoryTable";
@@ -428,7 +451,14 @@ function createHistoryTable(markettext) {
         if(name === '') {
             name = "<BUTTON class='parseMetadata' id='"+ markettext[i].NFT +"'>"+ markettext[i].NFT +"</BUTTON>";
         }
-        let USDProfit = (BNBPrice - markettext[i].heroPrice) * bnbPrice;
+        let USDProfit = (BNBPrice - markettext[i].heroPrice) * thcPrice;
+        if(typeof markettext[i].NFT === 'undefined') {
+            name = 'DeFi';
+            USDProfit = 0;
+            if(Operation === 'BUY') Operation = 'SELL';
+            else Operation = 'BUY';
+            markettext[i].heroPrice = 0;
+        }
 
         row.insertCell(0).innerHTML = name;
         row.insertCell(1).innerHTML = Operation;
@@ -484,23 +514,23 @@ function setSellPrice(object) {
         let PriceFeeInput = object.parentElement.nextElementSibling.firstElementChild;
         let price = object.value;
         let battles = parseInt(USDpB.dataset['battles']);
-        PriceFeeInput.value = (price*0.9585).toFixed(4);
-        USDpB.value = (price / battles * bnbPrice).toFixed(2);
+        PriceFeeInput.value = (price*0.9585).toFixed(1);
+        USDpB.value = (price / battles * thcPrice).toFixed(2);
     }
     if(object.name === 'salePF[]') {
         let USDpB = object.parentElement.nextElementSibling.firstElementChild;
         let PriceInput = object.parentElement.previousElementSibling.firstElementChild;
         let price = object.value/0.9585;
         let battles = parseInt(USDpB.dataset['battles']);
-        PriceInput.value = (price).toFixed(3);
-        USDpB.value = (price / battles * bnbPrice).toFixed(2);
+        PriceInput.value = (price).toFixed(0);
+        USDpB.value = (price / battles * thcPrice).toFixed(2);
     }
     if(object.name === 'USDpB[]') {
         let battles = parseInt(object.dataset['battles']);
-        let price = battles * object.value / bnbPrice;
+        let price = battles * object.value / thcPrice;
         let PriceFee = price*0.9585;
-        object.parentElement.previousElementSibling.previousElementSibling.firstElementChild.value = price.toFixed(3);
-        object.parentElement.previousElementSibling.firstElementChild.value = PriceFee.toFixed(4);
+        object.parentElement.previousElementSibling.previousElementSibling.firstElementChild.value = price.toFixed(0);
+        object.parentElement.previousElementSibling.firstElementChild.value = PriceFee.toFixed(1);
     }
 }
 
@@ -534,7 +564,7 @@ async function Sell(object) {
     object.disabled = true;
     let nftID = object.dataset['nftid'];
     let price = (object.parentElement.parentElement.getElementsByClassName("sellPrice")[0].value * 100000000).toFixed(0);
-    let responce = await fetch("https://data.thetanarena.com/thetan/v1/user-items/"+ nftID +"/hash-message?id="+ nftID +"&paymentTokenId=61795fdb6360d68a36ecab04&SystemCurrency.Type=32&SystemCurrency.Name=WBNB&SystemCurrency.Value="+ price +"&SystemCurrency.Decimals=8",
+    let responce = await fetch("https://data.thetanarena.com/thetan/v1/user-items/"+ nftID +"/hash-message?id="+ nftID +"&paymentTokenId=61795fdb6360d68a36ecab01&SystemCurrency.Type=11&SystemCurrency.Name=THC&SystemCurrency.Value="+ price +"&SystemCurrency.Decimals=8",
         {
             method: 'GET',
             withCredentials: true,
@@ -550,13 +580,13 @@ async function Sell(object) {
         console.log(signature);
         let sellObj = {
             "id": nftID,
-            "paymentTokenId": "61795fdb6360d68a36ecab04",
+            "paymentTokenId": "61795fdb6360d68a36ecab01",
             "signedSignature": signature,
             "systemCurrency": {
-                "type": 32,
+                "type": 11,
                 "value": price,
                 "decimals": 8,
-                "name": "WBNB"
+                "name": "THC"
             }
         };
         let responce2 = await fetch("https://data.thetanarena.com/thetan/v1/user-items/"+ nftID +"/sale",

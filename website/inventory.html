@@ -19,7 +19,7 @@
             content: "$";
         }
         #InventoryTable.marketTable tbody td:nth-child(3)::after {
-            content: " WBNB";
+            content: " THC";
         }
         #InventoryTable.marketTable tbody tr td:nth-child(6)::after {
             content: "%";
@@ -39,7 +39,7 @@
 
         #HistoryTable.marketTable tbody td:nth-child(3)::after,
         #HistoryTable.marketTable tbody td:nth-child(4)::after {
-            content: " WBNB";
+            content: " THC";
         }
         #HistoryTable.marketTable tbody td:nth-child(5)::before {
             content: "$";
@@ -60,7 +60,7 @@
 <DIV>My Wallet: <SPAN id="myAddress"></SPAN></DIV>
 <DIV>THC price: <SPAN id="THC"></SPAN> <A href="https://poocoin.app/tokens/0x24802247bd157d771b7effa205237d8e9269ba8a" target="_blank">[ Chart ]</A> </DIV>
 <DIV>WBNB price: <SPAN id="WBNB"></SPAN></DIV>
-<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB,  <SPAN id="myWBNB"></SPAN> WBNB</DIV>
+<DIV>Balance: <SPAN id="myBNB"></SPAN> BNB,  <SPAN id="myTHC"></SPAN> THC</DIV>
 <DIV>You have: <SPAN id="HeroesNum"></SPAN> heroes</DIV>
 <DIV>Market Auth token: <input type="text" id="Barrier" size="80"></DIV>
 <DIV id="accStats" style="display: none;">
@@ -78,21 +78,23 @@
 <DIV><B>How to use?</B><BR>
     * You can see your <B>owned</B> heroes on this page.<BR>
     * Add <B>Auth Token</B> from the market and <B>connect</B> your wallet to sell heroes.<BR>
-    * The price will be suggested to you, based on the <B>'average BNB/Battle price'</B> stored on the main page (this price is only actual for 8 hours).<BR>
+    * The price will be suggested to you, based on the <B>'average THC/Battle price'</B> stored on the main page (this price is only actual for 8 hours).<BR>
     * To save the 'average price' you should load a particular (needed) hero's deals on the <A href="index.html">main page</A>.<BR>
     * To put a hero on the market, set the price (you can change any value) and click the "SELL" button. Sign your offer in the wallet and the hero will be added.<BR>
     * To finish the sale, press the button "STOP SELLING".<BR>
     * You can load your transaction history. This history will be loaded directly from the blockchain.<BR>
     * If the skin name is not displayed, you can click the "Token ID" button and the skin name will be parsed from the blockchain.<BR>
-    * If you parse the skin from "BUY" operation, the purchase price will be saved and later used to calculate the profit for the "SELL" operation for this hero.<BR>
+    * If you parse the skin from "BUY" page, the purchase price will be saved and later used to calculate the profit for the "SELL" operation for this hero.<BR>
 <BR>
+</DIV>
 <DIV><B>How to get the Auth token to check lots?</B><BR>
     * Go to the official <A target="_blank" href="https://marketplace.thetanarena.com/">market</A>.<BR>
     * Go to your "inventory", click F12, in the "Console" tab paste <B>localStorage['theta/accessToken']</B> and click [Enter].<BR>
     * Copy the long code and paste it into the "Market Auth token" field above.<BR>
-    * You will be able to <B>check and BUY</B> heroes right from this page (with out Token impossible to get data neede to send a transaction).<BR>
 </DIV>
 <HR>
-<DIV><A href="https://ipfs.io/ipns/thetanmarket.live">Hosted</A> on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.</DIV>
+<DIV>
+    <A href="https://ipfs.io/ipns/thetanmarket.live">Hosted</A> on the Distributed Web <A href="https://ipfs.io/" target="_blank">IPFS</A>. Open-source project <A href="https://github.com/Niceman35/ThetanMarket" target="_blank">GitHUB</A>. Contribute for more functions or better interface.
+</DIV>
 </body>
 </html>
